@@ -1,47 +1,59 @@
-# BleachSan — High-Performance Windows Storage Cleaner
+# BleachSan
 
-BleachSan is a fast, deterministic, and lightweight storage cleaner and disk analyzer for Windows 10 and 11, written in **Rust** and **Slint**.
+BleachSan is a native, high-performance Windows storage cleaner and disk analyzer designed for speed, safety, and strict resource control. It is built in Rust and uses Slint for a lightweight graphical interface.
 
-## Features
+## Core Concepts & Architecture
 
-- **Strict Safety Engine**: Fail-closed architecture. Protects Windows system files, user documents, and desktop files by default.
-- **Deterministic Cleaning**: Cleans verified temporary and application caches without heuristics, registry hacking, or AI fluff.
-- **Ultra-Minimalist UI**: Monochromatic, high-contrast, zero-gimmick Slint desktop interface.
-- **Storage Analyzer**: Bounded parallel disk inspection to identify largest storage consumers.
-- **Automation Ready**: Native Windows Task Scheduler integration for zero-resource daily maintenance (0% CPU and 0 RAM idle).
-- **100% Local & Private**: Zero telemetry, zero analytics, zero network requests.
+The application is structured to provide deep disk analysis and cache cleaning while maintaining strict bounds on CPU and memory utilization.
+
+### 1. Bounded Concurrency Engine
+Traditional disk scanners either run strictly single-threaded (which is slow) or spawn unlimited threads (which saturates the CPU and starves other applications). BleachSan uses a bounded parallel orchestrator built on `rayon` and `jwalk`. The disk traversal engine is hard-capped to a strict 2-thread pool. This ensures that concurrent directory scanning operates fast enough to utilize SSD read speeds while physically preventing the application from exceeding low single-digit CPU usage (typically 3-5%) during heavy I/O operations.
+
+### 2. Reparse Point Isolation
+Scanning cloud-synchronized directories (such as OneDrive or Google Drive) often traps disk analyzers in loops, causing them to index hundreds of gigabytes of remote placeholders and spike CPU usage. BleachSan implements a custom pre-read filter at the Win32 filesystem level. It explicitly detects and blocks traversal into Windows Reparse Points and Junctions. This prevents the scanner from aggressively querying remote cloud files or falling into recursive directory structures.
+
+### 3. Declarative Rule Engine
+Rather than hardcoding file paths, BleachSan uses a deterministic, TOML-based rule engine. Cleaning definitions are separated from the core application logic. The engine parses these rules to locate temporary files, browser caches, and application logs using exact path resolution, environment variable expansion, and constrained deep searches. 
+
+### 4. Fail-Closed Safety Model
+The application enforces a strict safety boundary before any file deletion occurs. The safety validator intercepts all resolved paths and verifies them against a hardcoded list of protected root directories (e.g., `C:\Windows`, `C:\Users\Public`, or the root of any drive). If a rule attempts to traverse into a protected zone, the engine will fail closed and reject the operation, preventing accidental system damage.
+
+## Tech Stack
+
+- **Language**: Rust
+- **User Interface**: Slint
+- **Concurrency**: Rayon (Thread pooling), Crossbeam (Channel communication)
+- **Filesystem Traversal**: jwalk
+- **OS Bindings**: windows-rs (Direct Win32 API access)
+- **Data Serialization**: Serde, toml
 
 ## Project Structure
 
-```
-crates/
-├── cleaner-platform-windows/   # Direct Win32 / windows-rs bindings and OS primitives
-├── cleaner-core/               # Safety engine, TOML rules, streaming scanner & executor
-├── cleaner-ui/                 # Slint GUI frontend & viewmodels
-└── cleaner-app/                # Combined Release CLI & GUI binary
-```
+- `crates/cleaner-platform-windows/`: Direct Win32 bindings and OS primitives (e.g., Reparse Point detection, Task Scheduler integration).
+- `crates/cleaner-core/`: The backend engine containing the safety validator, TOML rule parser, and bounded streaming scanner.
+- `crates/cleaner-ui/`: Slint frontend definitions and viewmodels.
+- `crates/cleaner-app/`: Combined executable entry point.
+- `rules/`: External TOML configurations defining cleanup targets for browsers and applications.
 
-## Building & Running
+## Building and Running
 
-### Prerequisites
-- Windows 10/11 x86-64
-- Rust Stable (1.80+)
-
-### Commands
+Ensure you have the Rust toolchain installed for Windows x86-64.
 
 ```powershell
-# Run interactive GUI
-cargo run -p cleaner-app
+# Build and run the graphical interface
+cargo run -p cleaner-app --release
 
-# Headless Scan (stdout summary)
-cargo run -p cleaner-app -- --scan
+# Execute headless scanning from the command line
+cargo run -p cleaner-app --release -- --scan
 
-# Headless Scheduled Safe Clean (Task Scheduler mode)
-cargo run -p cleaner-app -- --scheduled --clean-safe
+# Execute the storage analyzer via CLI
+cargo run -p cleaner-app --release -- --analyze
+```
 
-# Storage Analyzer (Console mode)
-cargo run -p cleaner-app -- --analyze
+## Testing
 
-# Run all unit and integration tests
-cargo test --workspace
+The core engine includes a comprehensive test suite to verify safety boundaries, rule resolution, and path traversal rejection.
+
+```powershell
+cargo test -p cleaner-core
 ```
