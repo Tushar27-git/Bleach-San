@@ -15,6 +15,7 @@ export component AppWindow inherits Window {
     min-height: 500px;
     background: Theme.background;
     default-font-family: "Segoe UI Variable, Segoe UI, Inter, sans-serif";
+    icon: @image-url("assets/icon.png");
 
     // Application State Properties
     in-out property <int> active-tab: 0; // 0: Overview, 1: Cleanup, 2: Storage, 3: Settings
