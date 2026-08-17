@@ -1,0 +1,13 @@
+id = "crash_dumps"
+name = "Windows Crash Dumps"
+category = "system"
+description = "Crash dumps and error diagnostic reports generated after application failures."
+safety = "Safe"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\CrashDumps"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\CrashDumps"
+
+[requirements]
+requires_admin = false

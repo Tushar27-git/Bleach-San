@@ -1,0 +1,28 @@
+id = "directx_shader"
+name = "DirectX Shader Cache"
+category = "system"
+description = "Compiled graphics shader caches for DirectX, NVIDIA, and AMD."
+safety = "Safe"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\D3DSCache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\NVIDIA\\GLCache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\NVIDIA"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\NVIDIA\\DXCache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\NVIDIA"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\AMD\\DxCache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\AMD"
+
+[requirements]
+requires_admin = false

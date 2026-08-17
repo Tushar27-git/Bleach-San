@@ -1,0 +1,151 @@
+import { Theme } from "../theme.slint";
+import { MinimalButton } from "../components/button.slint";
+import { MinimalBadge } from "../components/badge.slint";
+import { MinimalProgressBar } from "../components/progress_bar.slint";
+import { ListView } from "std-widgets.slint";
+
+export struct UIStorageItem {
+    name: string,
+    path_display: string,
+    size_formatted: string,
+    category: string,
+    is_dir: bool,
+}
+
+export component StoragePage {
+    in property <[UIStorageItem]> items: [];
+    in property <bool> is-analyzing: false;
+    in property <string> root-path: "%LOCALAPPDATA%";
+    callback trigger-analysis();
+
+    VerticalLayout {
+        width: 100%;
+        height: 100%;
+        padding: 24px;
+        spacing: 16px;
+
+        // Header
+        HorizontalLayout {
+            alignment: space-between;
+
+            VerticalLayout {
+                spacing: 2px;
+                Text {
+                    text: "Storage Analyzer";
+                    font-size: Theme.font-xl;
+                    font-weight: 600;
+                    color: Theme.text-primary;
+                }
+                Text {
+                    text: "Identify large directories and disk consumers without persistent indexing.";
+                    font-size: Theme.font-xs;
+                    color: Theme.text-secondary;
+                }
+            }
+
+            MinimalButton {
+                text: root.is-analyzing ? "Analyzing..." : "Analyze Storage";
+                primary: true;
+                enabled: !root.is-analyzing;
+                custom-width: 140px;
+                clicked => { root.trigger-analysis(); }
+            }
+        }
+
+        // Table Header
+        Rectangle {
+            background: Theme.surface;
+            border-color: Theme.border;
+            border-width: 1px;
+            border-radius: Theme.radius-sm;
+            height: 32px;
+
+            HorizontalLayout {
+                padding-left: 12px;
+                padding-right: 12px;
+                spacing: 12px;
+                alignment: space-between;
+
+                Text {
+                    text: "FOLDER / FILE NAME";
+                    font-size: Theme.font-xs;
+                    font-weight: 600;
+                    color: Theme.text-muted;
+                    vertical-alignment: center;
+                    width: 320px;
+                }
+
+                Text {
+                    text: "CATEGORY";
+                    font-size: Theme.font-xs;
+                    font-weight: 600;
+                    color: Theme.text-muted;
+                    vertical-alignment: center;
+                    width: 120px;
+                }
+
+                Text {
+                    text: "SIZE";
+                    font-size: Theme.font-xs;
+                    font-weight: 600;
+                    color: Theme.text-muted;
+                    vertical-alignment: center;
+                    horizontal-alignment: right;
+                    width: 100px;
+                }
+            }
+        }
+
+        // Storage Items
+        ListView {
+            vertical-stretch: 1;
+
+            for item in root.items : Rectangle {
+                    background: Theme.surface;
+                    border-color: Theme.border-subtle;
+                    border-width: 1px;
+                    border-radius: Theme.radius-sm;
+                    height: 40px;
+
+                    HorizontalLayout {
+                        padding-left: 12px;
+                        padding-right: 12px;
+                        spacing: 12px;
+                        alignment: space-between;
+
+                        HorizontalLayout {
+                            spacing: 8px;
+                            width: 320px;
+                            alignment: start;
+
+                            Text {
+                                text: item.name;
+                                font-size: Theme.font-sm;
+                                font-weight: 500;
+                                color: Theme.text-primary;
+                                vertical-alignment: center;
+                            }
+                        }
+
+                        Text {
+                            text: item.category;
+                            font-size: Theme.font-xs;
+                            color: Theme.text-secondary;
+                            vertical-alignment: center;
+                            width: 120px;
+                        }
+
+                        Text {
+                            text: item.size_formatted;
+                            font-size: Theme.font-sm;
+                            font-weight: 600;
+                            color: Theme.text-primary;
+                            vertical-alignment: center;
+                            horizontal-alignment: right;
+                            width: 100px;
+                        }
+                    }
+            }
+        }
+    }
+}

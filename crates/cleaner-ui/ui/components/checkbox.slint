@@ -1,0 +1,53 @@
+import { Theme } from "../theme.slint";
+
+export component MinimalCheckbox {
+    in-out property <bool> checked: false;
+    in property <bool> enabled: true;
+    in property <string> text: "";
+    callback toggled(bool);
+
+    height: 24px;
+
+    HorizontalLayout {
+        spacing: 8px;
+        alignment: start;
+
+        box := Rectangle {
+            width: 16px;
+            height: 16px;
+            y: (parent.height - self.height) / 2;
+            background: root.checked ? Theme.accent : Theme.surface;
+            border-color: root.checked ? Theme.accent : (touch.has-hover ? Theme.text-secondary : Theme.border);
+            border-width: 1px;
+            border-radius: 3px;
+
+            animate background { duration: 80ms; }
+            animate border-color { duration: 80ms; }
+
+            if root.checked : Path {
+                width: 10px;
+                height: 8px;
+                x: 3px;
+                y: 4px;
+                stroke: #FFFFFF;
+                stroke-width: 1.5px;
+                commands: "M 1 4 L 4 7 L 9 1";
+            }
+        }
+
+        if root.text != "" : Text {
+            text: root.text;
+            font-size: Theme.font-sm;
+            color: !root.enabled ? Theme.text-muted : Theme.text-primary;
+            vertical-alignment: center;
+        }
+    }
+
+    touch := TouchArea {
+        enabled: root.enabled;
+        clicked => {
+            root.checked = !root.checked;
+            root.toggled(root.checked);
+        }
+    }
+}

@@ -1,0 +1,13 @@
+id = "user_temp"
+name = "User Temp Files"
+category = "system"
+description = "Temporary files created by user applications in the local Temp folder."
+safety = "Safe"
+
+[[targets]]
+path = "%TEMP%"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Temp"
+
+[requirements]
+requires_admin = false

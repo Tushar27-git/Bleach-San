@@ -1,0 +1,14 @@
+id = "pip_cache"
+name = "Python PIP Cache"
+category = "developer"
+description = "Cached wheel and source distributions downloaded by pip."
+safety = "Safe"
+
+# Correct casing — Windows folder is 'Cache' not 'cache'
+[[targets]]
+path = "%LOCALAPPDATA%\\pip\\Cache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\pip\\Cache"
+
+[requirements]
+requires_admin = false

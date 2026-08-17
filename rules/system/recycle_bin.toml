@@ -1,0 +1,12 @@
+id = "recycle_bin"
+name = "Recycle Bin"
+category = "system"
+description = "Deleted files and folders currently stored in the Windows Recycle Bin."
+safety = "Safe"
+
+[[targets]]
+path = "SPECIAL:RECYCLE_BIN"
+action = "EmptyRecycleBin"
+
+[requirements]
+requires_admin = false

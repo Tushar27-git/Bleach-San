@@ -1,0 +1,17 @@
+[package]
+name = "cleaner-ui"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+build = "build.rs"
+
+[dependencies]
+cleaner-core = { workspace = true }
+cleaner-platform-windows = { workspace = true }
+slint = { workspace = true }
+tracing = { workspace = true }
+crossbeam-channel = { workspace = true }
+
+[build-dependencies]
+slint-build = { workspace = true }

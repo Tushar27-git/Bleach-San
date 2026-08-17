@@ -1,0 +1,24 @@
+id = "chrome"
+name = "Google Chrome Cache"
+category = "applications"
+description = "Web browsing cache and GPU shader cache for Google Chrome."
+safety = "Safe"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\Default\\Cache\\Cache_Data"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\Default\\Cache"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\Default\\Code Cache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\Default\\Code Cache"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\Default\\GPUCache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\Default\\GPUCache"
+
+[requirements]
+process_closed = "chrome.exe"
+requires_admin = false

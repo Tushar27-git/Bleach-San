@@ -1,0 +1,13 @@
+id = "delivery_optimization"
+name = "Delivery Optimization Cache"
+category = "system"
+description = "Cached Windows Update and store app files used for local network sharing."
+safety = "Safe"
+
+[[targets]]
+path = "%WINDIR%\\SoftwareDistribution\\Download"
+action = "DeleteContents"
+allowed_root = "%WINDIR%\\SoftwareDistribution"
+
+[requirements]
+requires_admin = false

@@ -1,0 +1,53 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/cleaner-platform-windows",
+    "crates/cleaner-core",
+    "crates/cleaner-ui",
+    "crates/cleaner-app",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["BleachSan Contributors"]
+license = "MIT OR Apache-2.0"
+
+[workspace.dependencies]
+# Internal workspace crates
+cleaner-platform-windows = { path = "crates/cleaner-platform-windows" }
+cleaner-core = { path = "crates/cleaner-core" }
+cleaner-ui = { path = "crates/cleaner-ui" }
+
+# Serialization & Config
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+
+# Concurrency
+rayon = "1.10"
+crossbeam-channel = "0.5"
+
+# CLI & Logging
+clap = { version = "4.5", features = ["derive"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-appender = "0.2"
+thiserror = "2.0"
+anyhow = "1.0"
+
+# Slint GUI
+slint = "1.9"
+slint-build = "1.9"
+
+# Windows APIs
+windows = { version = "0.58", features = [
+    "Win32_Foundation",
+    "Win32_Storage_FileSystem",
+    "Win32_System_Diagnostics_ToolHelp",
+    "Win32_System_Threading",
+    "Win32_System_ProcessStatus",
+    "Win32_Security",
+    "Win32_UI_Shell",
+    "Win32_System_Com",
+] }

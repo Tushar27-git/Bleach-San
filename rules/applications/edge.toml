@@ -1,0 +1,24 @@
+id = "edge"
+name = "Microsoft Edge Cache"
+category = "applications"
+description = "Web browsing cache and GPU shader cache for Microsoft Edge."
+safety = "Safe"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\Default\\Cache\\Cache_Data"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\Default\\Cache"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\Default\\Code Cache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\Default\\Code Cache"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\Default\\GPUCache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\Default\\GPUCache"
+
+[requirements]
+process_closed = "msedge.exe"
+requires_admin = false

@@ -1,0 +1,13 @@
+id = "gradle_cache"
+name = "Gradle Dependency Cache"
+category = "developer"
+description = "Cached jar dependencies and build caches downloaded by Gradle."
+safety = "Safe"
+
+[[targets]]
+path = "%USERPROFILE%\\.gradle\\caches"
+action = "DeleteContents"
+allowed_root = "%USERPROFILE%\\.gradle\\caches"
+
+[requirements]
+requires_admin = false

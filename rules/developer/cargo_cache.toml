@@ -1,0 +1,18 @@
+id = "cargo_cache"
+name = "Cargo Package Git & Registry Cache"
+category = "developer"
+description = "Cached downloaded crate tarballs and git checkout metadata."
+safety = "Safe"
+
+[[targets]]
+path = "%USERPROFILE%\\.cargo\\registry\\cache"
+action = "DeleteContents"
+allowed_root = "%USERPROFILE%\\.cargo\\registry\\cache"
+
+[[targets]]
+path = "%USERPROFILE%\\.cargo\\git\\checkouts"
+action = "DeleteContents"
+allowed_root = "%USERPROFILE%\\.cargo\\git\\checkouts"
+
+[requirements]
+requires_admin = false

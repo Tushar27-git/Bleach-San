@@ -1,0 +1,108 @@
+import { Theme } from "../theme.slint";
+import { MinimalButton } from "../components/button.slint";
+import { MinimalCheckbox } from "../components/checkbox.slint";
+
+export component SettingsPage {
+    in-out property <bool> task-scheduler-enabled: false;
+    in property <string> app-version: "0.1.0";
+    callback toggle-task-scheduler(bool);
+
+    VerticalLayout {
+        padding: 24px;
+        spacing: 20px;
+        alignment: start;
+
+        // Header
+        VerticalLayout {
+            spacing: 2px;
+            Text {
+                text: "Settings & Automation";
+                font-size: Theme.font-xl;
+                font-weight: 600;
+                color: Theme.text-primary;
+            }
+            Text {
+                text: "Configure background automation and application preferences.";
+                font-size: Theme.font-xs;
+                color: Theme.text-secondary;
+            }
+        }
+
+        // Section: Automation
+        Rectangle {
+            background: Theme.surface;
+            border-color: Theme.border;
+            border-width: 1px;
+            border-radius: Theme.radius-md;
+
+            VerticalLayout {
+                padding: 16px;
+                spacing: 12px;
+
+                Text {
+                    text: "BACKGROUND AUTOMATION";
+                    font-size: Theme.font-xs;
+                    font-weight: 600;
+                    color: Theme.text-muted;
+                }
+
+                HorizontalLayout {
+                    alignment: space-between;
+
+                    VerticalLayout {
+                        spacing: 2px;
+                        Text {
+                            text: "Windows Task Scheduler Daily Auto-Clean";
+                            font-size: Theme.font-sm;
+                            font-weight: 500;
+                            color: Theme.text-primary;
+                        }
+                        Text {
+                            text: "Executes SAFE cleaners daily at 03:00 AM via Windows Task Scheduler (0 CPU, 0 RAM idle).";
+                            font-size: Theme.font-xs;
+                            color: Theme.text-secondary;
+                        }
+                    }
+
+                    MinimalCheckbox {
+                        checked: root.task-scheduler-enabled;
+                        toggled(c) => { root.toggle-task-scheduler(c); }
+                    }
+                }
+            }
+        }
+
+        // Section: Privacy & Guarantee
+        Rectangle {
+            background: Theme.surface;
+            border-color: Theme.border;
+            border-width: 1px;
+            border-radius: Theme.radius-md;
+
+            VerticalLayout {
+                padding: 16px;
+                spacing: 12px;
+
+                Text {
+                    text: "PRIVACY & SAFETY GUARANTEE";
+                    font-size: Theme.font-xs;
+                    font-weight: 600;
+                    color: Theme.text-muted;
+                }
+
+                Text {
+                    text: "• Zero telemetry, zero analytics, zero external network requests.\n• Fail-closed safety: Unknown or non-canonical paths are strictly skipped.\n• User documents, pictures, music, and desktop files are protected by default.";
+                    font-size: Theme.font-xs;
+                    color: Theme.text-secondary;
+                }
+            }
+        }
+
+        // Version info
+        Text {
+            text: "BleachSan v" + root.app-version + " • Built with Rust & Slint";
+            font-size: Theme.font-xs;
+            color: Theme.text-muted;
+        }
+    }
+}

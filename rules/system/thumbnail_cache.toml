@@ -1,0 +1,15 @@
+id = "thumbnail_cache"
+name = "Windows Explorer Thumbnail Cache"
+category = "system"
+description = "Cached thumbnail images used by Windows Explorer."
+safety = "Safe"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Microsoft\\Windows\\Explorer"
+action = "DeleteFilesMatching"
+pattern = "thumbcache_*.db"
+allowed_root = "%LOCALAPPDATA%\\Microsoft\\Windows\\Explorer"
+
+[requirements]
+requires_admin = false
+process_closed = "explorer.exe"

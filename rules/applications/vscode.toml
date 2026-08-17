@@ -1,0 +1,35 @@
+id = "vscode"
+name = "Visual Studio Code Cache"
+category = "applications"
+description = "Cached editor workspace data, GPU cache, extension VSIX packages, and logs."
+safety = "Safe"
+
+[[targets]]
+path = "%APPDATA%\\Code\\Cache\\Cache_Data"
+action = "DeleteContents"
+allowed_root = "%APPDATA%\\Code\\Cache"
+
+[[targets]]
+path = "%APPDATA%\\Code\\CachedData"
+action = "DeleteContents"
+allowed_root = "%APPDATA%\\Code\\CachedData"
+
+[[targets]]
+path = "%APPDATA%\\Code\\GPUCache"
+action = "DeleteContents"
+allowed_root = "%APPDATA%\\Code\\GPUCache"
+
+# Downloaded extension VSIX packages — safe to clear, they re-download on demand
+[[targets]]
+path = "%APPDATA%\\Code\\CachedExtensionVSIXs"
+action = "DeleteContents"
+allowed_root = "%APPDATA%\\Code\\CachedExtensionVSIXs"
+
+[[targets]]
+path = "%APPDATA%\\Code\\logs"
+action = "DeleteContents"
+allowed_root = "%APPDATA%\\Code\\logs"
+
+[requirements]
+process_closed = "Code.exe"
+requires_admin = false

@@ -1,0 +1,25 @@
+id = "npm_cache"
+name = "NPM Package Cache"
+category = "developer"
+description = "Cached tarballs and git repos downloaded by the Node.js Package Manager."
+safety = "Safe"
+
+# Main content cache (tarballs, index, tmp) — all safely deletable
+[[targets]]
+path = "%LOCALAPPDATA%\\npm-cache\\_cacache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\npm-cache"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\npm-cache\\tmp"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\npm-cache"
+
+# Also cover the _npx temp execution cache
+[[targets]]
+path = "%LOCALAPPDATA%\\npm-cache\\_npx"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\npm-cache"
+
+[requirements]
+requires_admin = false

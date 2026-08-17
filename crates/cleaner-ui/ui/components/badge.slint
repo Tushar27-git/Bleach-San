@@ -1,0 +1,37 @@
+import { Theme } from "../theme.slint";
+
+export component MinimalBadge {
+    in property <string> text: "SAFE";
+    in property <string> kind: "safe"; // "safe", "review", "danger", "info"
+
+    height: 18px;
+
+    Rectangle {
+        background: root.kind == "safe" ? Theme.status-safe.darker(0.8)
+            : root.kind == "review" ? Theme.status-review.darker(0.8)
+            : root.kind == "danger" ? Theme.status-danger.darker(0.8)
+            : Theme.status-info.darker(0.8);
+        border-color: root.kind == "safe" ? Theme.status-safe.darker(0.3)
+            : root.kind == "review" ? Theme.status-review.darker(0.3)
+            : root.kind == "danger" ? Theme.status-danger.darker(0.3)
+            : Theme.status-info.darker(0.3);
+        border-width: 1px;
+        border-radius: Theme.radius-sm;
+
+        HorizontalLayout {
+            padding-left: 6px;
+            padding-right: 6px;
+
+            Text {
+                text: root.text;
+                font-size: Theme.font-xs;
+                font-weight: 600;
+                color: root.kind == "safe" ? Theme.status-safe
+                    : root.kind == "review" ? Theme.status-review
+                    : root.kind == "danger" ? Theme.status-danger
+                    : Theme.status-info;
+                vertical-alignment: center;
+            }
+        }
+    }
+}

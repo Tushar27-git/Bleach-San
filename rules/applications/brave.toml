@@ -1,0 +1,19 @@
+id = "brave"
+name = "Brave Browser Cache"
+category = "applications"
+description = "Web cache, images, and temporary data created by Brave Browser."
+safety = "Safe"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\BraveSoftware\\Brave-Browser\\User Data\\Default\\Cache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\BraveSoftware"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\BraveSoftware\\Brave-Browser\\User Data\\Default\\Code Cache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\BraveSoftware"
+
+[requirements]
+requires_admin = false
+process_not_running = "brave.exe"

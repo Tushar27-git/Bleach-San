@@ -1,0 +1,130 @@
+import { Theme } from "../theme.slint";
+import { MinimalButton } from "../components/button.slint";
+
+export component OverviewPage {
+    in property <string> reclaimable-space: "0 B";
+    in property <string> total-items-count: "0";
+    in property <string> last-cleaned-time: "Never";
+    in property <bool> is-scanning: false;
+    callback start-quick-scan();
+    callback switch-to-cleanup();
+
+    VerticalLayout {
+        padding: 24px;
+        spacing: 20px;
+        alignment: start;
+
+        // Header
+        VerticalLayout {
+            spacing: 4px;
+            Text {
+                text: "System Overview";
+                font-size: Theme.font-xl;
+                font-weight: 600;
+                color: Theme.text-primary;
+            }
+            Text {
+                text: "Deterministic, safe storage cleaner for Windows.";
+                font-size: Theme.font-sm;
+                color: Theme.text-secondary;
+            }
+        }
+
+        // Metrics Grid
+        HorizontalLayout {
+            spacing: 16px;
+
+            // Card 1: Reclaimable Space
+            Rectangle {
+                background: Theme.surface;
+                border-color: Theme.border;
+                border-width: 1px;
+                border-radius: Theme.radius-md;
+                height: 120px;
+                horizontal-stretch: 1;
+
+                VerticalLayout {
+                    padding: 16px;
+                    alignment: space-between;
+
+                    Text {
+                        text: "CLEANABLE SPACE";
+                        font-size: Theme.font-xs;
+                        font-weight: 600;
+                        color: Theme.text-muted;
+                    }
+
+                    Text {
+                        text: root.reclaimable-space;
+                        font-size: 28px;
+                        font-weight: 700;
+                        color: Theme.status-safe;
+                    }
+
+                    Text {
+                        text: root.total-items-count + " candidates detected";
+                        font-size: Theme.font-xs;
+                        color: Theme.text-secondary;
+                    }
+                }
+            }
+
+            // Card 2: Status / Last Cleaned
+            Rectangle {
+                background: Theme.surface;
+                border-color: Theme.border;
+                border-width: 1px;
+                border-radius: Theme.radius-md;
+                height: 120px;
+                horizontal-stretch: 1;
+
+                VerticalLayout {
+                    padding: 16px;
+                    alignment: space-between;
+
+                    Text {
+                        text: "CLEANUP STATUS";
+                        font-size: Theme.font-xs;
+                        font-weight: 600;
+                        color: Theme.text-muted;
+                    }
+
+                    Text {
+                        text: "System Ready";
+                        font-size: Theme.font-lg;
+                        font-weight: 600;
+                        color: Theme.text-primary;
+                    }
+
+                    Text {
+                        text: "Last cleaned: " + root.last-cleaned-time;
+                        font-size: Theme.font-xs;
+                        color: Theme.text-secondary;
+                    }
+                }
+            }
+        }
+
+        // Actions
+        HorizontalLayout {
+            spacing: 12px;
+
+            MinimalButton {
+                text: root.is-scanning ? "Scanning..." : "Quick Scan";
+                primary: true;
+                enabled: !root.is-scanning;
+                custom-width: 130px;
+                custom-height: 36px;
+                clicked => { root.start-quick-scan(); }
+            }
+
+            MinimalButton {
+                text: "Review Cleaners";
+                primary: false;
+                custom-width: 140px;
+                custom-height: 36px;
+                clicked => { root.switch-to-cleanup(); }
+            }
+        }
+    }
+}

@@ -1,0 +1,239 @@
+import { Theme } from "../theme.slint";
+import { MinimalButton } from "../components/button.slint";
+import { MinimalCheckbox } from "../components/checkbox.slint";
+import { MinimalBadge } from "../components/badge.slint";
+import { MinimalProgressBar } from "../components/progress_bar.slint";
+import { ListView } from "std-widgets.slint";
+
+export struct UICleanerItem {
+    id: string,
+    name: string,
+    category: string,
+    description: string,
+    size_formatted: string,
+    file_count: int,
+    safety_level: string,
+    is_selected: bool,
+    is_blocked: bool,
+    blocked_process: string,
+}
+
+export component CleanupPage {
+    in property <[UICleanerItem]> items: [];
+    in property <string> total-selected-size: "0 B";
+    in property <int> total-selected-count: 0;
+    in property <bool> is-scanning: false;
+    in property <bool> is-cleaning: false;
+    in property <float> progress-val: 0.0;
+    in property <string> status-text: "Ready to scan.";
+
+    callback trigger-scan();
+    callback trigger-clean();
+    callback toggle-item(string, bool);
+    callback select-all(bool);
+
+    VerticalLayout {
+        width: 100%;
+        height: 100%;
+        padding: 24px;
+        spacing: 16px;
+
+        // Header & Actions
+        HorizontalLayout {
+            alignment: space-between;
+
+            VerticalLayout {
+                spacing: 2px;
+                Text {
+                    text: "Cleaner Rules";
+                    font-size: Theme.font-xl;
+                    font-weight: 600;
+                    color: Theme.text-primary;
+                }
+                Text {
+                    text: "Select items to safely delete. Unknown or dangerous paths are strictly excluded.";
+                    font-size: Theme.font-xs;
+                    color: Theme.text-secondary;
+                }
+            }
+
+            HorizontalLayout {
+                spacing: 10px;
+                alignment: end;
+
+                MinimalButton {
+                    text: root.is-scanning ? "Scanning..." : "Scan All";
+                    primary: false;
+                    enabled: !root.is-scanning && !root.is-cleaning;
+                    custom-width: 100px;
+                    clicked => { root.trigger-scan(); }
+                }
+
+                MinimalButton {
+                    text: root.is-cleaning ? "Cleaning..." : "Clean Selected (" + root.total-selected-size + ")";
+                    primary: true;
+                    danger: false;
+                    enabled: !root.is-scanning && !root.is-cleaning && root.total-selected-count > 0;
+                    custom-width: 190px;
+                    clicked => { root.trigger-clean(); }
+                }
+            }
+        }
+
+        // Progress bar if active
+        if root.is-scanning || root.is-cleaning : VerticalLayout {
+            spacing: 4px;
+            Text {
+                text: root.status-text;
+                font-size: Theme.font-xs;
+                color: Theme.accent-hover;
+            }
+            MinimalProgressBar {
+                progress: root.progress-val;
+                active: true;
+            }
+        }
+
+        // Table Header
+        Rectangle {
+            background: Theme.surface;
+            border-color: Theme.border;
+            border-width: 1px;
+            border-radius: Theme.radius-sm;
+            height: 32px;
+
+            HorizontalLayout {
+                padding-left: 12px;
+                padding-right: 12px;
+                spacing: 12px;
+                alignment: space-between;
+
+                HorizontalLayout {
+                    spacing: 12px;
+                    width: 340px;
+
+                    Text {
+                        text: "NAME & DESCRIPTION";
+                        font-size: Theme.font-xs;
+                        font-weight: 600;
+                        color: Theme.text-muted;
+                        vertical-alignment: center;
+                    }
+                }
+
+                Text {
+                    text: "CATEGORY";
+                    font-size: Theme.font-xs;
+                    font-weight: 600;
+                    color: Theme.text-muted;
+                    vertical-alignment: center;
+                    width: 100px;
+                }
+
+                Text {
+                    text: "SAFETY";
+                    font-size: Theme.font-xs;
+                    font-weight: 600;
+                    color: Theme.text-muted;
+                    vertical-alignment: center;
+                    width: 90px;
+                }
+
+                Text {
+                    text: "SIZE";
+                    font-size: Theme.font-xs;
+                    font-weight: 600;
+                    color: Theme.text-muted;
+                    vertical-alignment: center;
+                    horizontal-alignment: right;
+                    width: 90px;
+                }
+            }
+        }
+
+        // Cleaner Items Scrollable List
+        ListView {
+            vertical-stretch: 1;
+
+            for item in root.items : Rectangle {
+                    background: item.is-selected ? Theme.surface-hover : Theme.surface;
+                    border-color: item.is-selected ? Theme.border : Theme.border-subtle;
+                    border-width: 1px;
+                    border-radius: Theme.radius-sm;
+                    height: 44px;
+
+                    HorizontalLayout {
+                        padding-left: 12px;
+                        padding-right: 12px;
+                        spacing: 12px;
+                        alignment: space-between;
+
+                        HorizontalLayout {
+                            spacing: 12px;
+                            width: 340px;
+
+                            MinimalCheckbox {
+                                checked: item.is_selected;
+                                enabled: !item.is_blocked && !root.is-scanning && !root.is-cleaning;
+                                toggled(c) => { root.toggle-item(item.id, c); }
+                            }
+
+                            VerticalLayout {
+                                alignment: center;
+                                spacing: 2px;
+
+                                Text {
+                                    text: item.name;
+                                    font-size: Theme.font-sm;
+                                    font-weight: 500;
+                                    color: item.is_blocked ? Theme.text-muted : Theme.text-primary;
+                                }
+
+                                if item.is_blocked : Text {
+                                    text: "Running (" + item.blocked_process + ") — close to clean";
+                                    font-size: Theme.font-xs;
+                                    color: Theme.status-review;
+                                }
+                            }
+                        }
+
+                        // Category
+                        Text {
+                            text: item.category;
+                            font-size: Theme.font-xs;
+                            color: Theme.text-secondary;
+                            vertical-alignment: center;
+                            width: 100px;
+                        }
+
+                        // Safety Tag
+                        HorizontalLayout {
+                            width: 90px;
+                            alignment: start;
+                            y: (parent.height - 18px) / 2;
+
+                            if item.is_blocked : MinimalBadge {
+                                text: "RUNNING";
+                                kind: "review";
+                            }
+                            if !item.is_blocked : MinimalBadge {
+                                text: item.safety_level;
+                                kind: item.safety_level == "SAFE" ? "safe" : "review";
+                            }
+                        }
+
+                        // Size
+                        Text {
+                            text: item.size_formatted;
+                            font-size: Theme.font-sm;
+                            font-weight: 600;
+                            color: item.size_formatted != "0 B" ? Theme.text-primary : Theme.text-muted;
+                            vertical-alignment: center;
+                            horizontal-alignment: right;
+                            width: 90px;
+                        }
+                    }
+            }
+        }
+    }
+}

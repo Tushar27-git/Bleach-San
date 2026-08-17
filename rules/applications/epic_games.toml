@@ -1,0 +1,15 @@
+id = "epic_games"
+name = "Epic Games Launcher Cache"
+category = "Applications"
+description = "Webcache files for the Epic Games launcher."
+safety = "SAFE"
+
+[targets]
+directories = [
+    "%LOCALAPPDATA%\\EpicGamesLauncher\\Saved\\webcache",
+    "%LOCALAPPDATA%\\EpicGamesLauncher\\Saved\\webcache_4147",
+    "%LOCALAPPDATA%\\EpicGamesLauncher\\Saved\\webcache_4430"
+]
+
+[requirements]
+requires_admin = false

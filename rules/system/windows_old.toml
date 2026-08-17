@@ -1,0 +1,15 @@
+id = "windows_old"
+name = "Previous Windows Installations (Windows.old)"
+category = "System"
+description = "Large leftover folders from previous Windows updates."
+safety = "REVIEW"
+
+[targets]
+directories = [
+    "C:\\Windows.old",
+    "C:\\$Windows.~BT",
+    "C:\\$Windows.~WS"
+]
+
+[requirements]
+requires_admin = true

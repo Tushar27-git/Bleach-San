@@ -1,0 +1,200 @@
+import { Theme } from "../theme.slint";
+import { MinimalButton } from "../components/button.slint";
+import { MinimalCheckbox } from "../components/checkbox.slint";
+import { MinimalBadge } from "../components/badge.slint";
+import { MinimalProgressBar } from "../components/progress_bar.slint";
+import { ListView } from "std-widgets.slint";
+
+export struct UILargeFileItem {
+    id: string, // Could be path
+    name: string,
+    category: string,
+    size_formatted: string,
+    is_selected: bool,
+}
+
+export component LargeFilesPage {
+    in property <[UILargeFileItem]> items: [];
+    in property <bool> is-scanning: false;
+    in property <bool> is-deleting: false;
+    in property <string> status-text: "Ready to scan.";
+
+    callback trigger-scan();
+    callback trigger-delete();
+    callback toggle-item(string, bool);
+
+    VerticalLayout {
+        width: 100%;
+        height: 100%;
+        padding: 24px;
+        spacing: 16px;
+
+        // Header & Actions
+        HorizontalLayout {
+            alignment: space-between;
+
+            VerticalLayout {
+                spacing: 2px;
+                Text {
+                    text: "Large Junk Files";
+                    font-size: Theme.font-xl;
+                    font-weight: 600;
+                    color: Theme.text-primary;
+                }
+                Text {
+                    text: "Find and safely delete large files (>50MB) like old downloads, dumps, and installers.";
+                    font-size: Theme.font-xs;
+                    color: Theme.text-secondary;
+                }
+            }
+
+            HorizontalLayout {
+                spacing: 10px;
+                alignment: end;
+
+                MinimalButton {
+                    text: root.is-scanning ? "Scanning..." : "Scan Large Files";
+                    primary: false;
+                    enabled: !root.is-scanning && !root.is-deleting;
+                    custom-width: 130px;
+                    clicked => { root.trigger-scan(); }
+                }
+
+                MinimalButton {
+                    text: root.is-deleting ? "Deleting..." : "Delete Selected";
+                    primary: true;
+                    danger: true;
+                    enabled: !root.is-scanning && !root.is-deleting;
+                    custom-width: 140px;
+                    clicked => { root.trigger-delete(); }
+                }
+            }
+        }
+
+        // Progress text
+        if root.is-scanning || root.is-deleting : VerticalLayout {
+            spacing: 4px;
+            Text {
+                text: root.status-text;
+                font-size: Theme.font-xs;
+                color: Theme.accent-hover;
+            }
+            MinimalProgressBar {
+                progress: 0.0; // Indeterminate
+                active: true;
+            }
+        }
+
+        // Table Header
+        Rectangle {
+            background: Theme.surface;
+            border-color: Theme.border;
+            border-width: 1px;
+            border-radius: Theme.radius-sm;
+            height: 32px;
+
+            HorizontalLayout {
+                padding-left: 12px;
+                padding-right: 12px;
+                spacing: 12px;
+                alignment: space-between;
+
+                HorizontalLayout {
+                    spacing: 12px;
+                    width: 340px;
+
+                    Text {
+                        text: "FILE NAME";
+                        font-size: Theme.font-xs;
+                        font-weight: 600;
+                        color: Theme.text-muted;
+                        vertical-alignment: center;
+                    }
+                }
+
+                Text {
+                    text: "CATEGORY";
+                    font-size: Theme.font-xs;
+                    font-weight: 600;
+                    color: Theme.text-muted;
+                    vertical-alignment: center;
+                    width: 100px;
+                }
+
+                Text {
+                    text: "SIZE";
+                    font-size: Theme.font-xs;
+                    font-weight: 600;
+                    color: Theme.text-muted;
+                    vertical-alignment: center;
+                    horizontal-alignment: right;
+                    width: 90px;
+                }
+            }
+        }
+
+        // Large Files List
+        ListView {
+            vertical-stretch: 1;
+
+            for item in root.items : Rectangle {
+                background: item.is-selected ? Theme.surface-hover : Theme.surface;
+                border-color: item.is-selected ? Theme.border : Theme.border-subtle;
+                border-width: 1px;
+                border-radius: Theme.radius-sm;
+                height: 44px;
+
+                HorizontalLayout {
+                    padding-left: 12px;
+                    padding-right: 12px;
+                    spacing: 12px;
+                    alignment: space-between;
+
+                    HorizontalLayout {
+                        spacing: 12px;
+                        width: 340px;
+
+                        MinimalCheckbox {
+                            checked: item.is_selected;
+                            enabled: !root.is-scanning && !root.is-deleting;
+                            toggled(c) => { root.toggle-item(item.id, c); }
+                        }
+
+                        VerticalLayout {
+                            alignment: center;
+                            spacing: 2px;
+
+                            Text {
+                                text: item.name;
+                                font-size: Theme.font-sm;
+                                font-weight: 500;
+                                color: Theme.text-primary;
+                                overflow: elide;
+                            }
+                        }
+                    }
+
+                    // Category
+                    Text {
+                        text: item.category;
+                        font-size: Theme.font-xs;
+                        color: Theme.text-secondary;
+                        vertical-alignment: center;
+                        width: 100px;
+                    }
+
+                    // Size
+                    Text {
+                        text: item.size_formatted;
+                        font-size: Theme.font-sm;
+                        font-weight: 600;
+                        color: Theme.text-primary;
+                        vertical-alignment: center;
+                        horizontal-alignment: right;
+                        width: 90px;
+                    }
+                }
+            }
+        }
+    }
+}

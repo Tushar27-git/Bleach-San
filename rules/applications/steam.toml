@@ -1,0 +1,15 @@
+id = "steam"
+name = "Steam Web & Shader Cache"
+category = "applications"
+description = "Steam client embedded browser cache (CEF/Chromium) and shader depot pre-compilations."
+safety = "Safe"
+
+# Steam's CEF browser cache — entire htmlcache folder contents
+[[targets]]
+path = "%LOCALAPPDATA%\\Steam\\htmlcache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Steam\\htmlcache"
+
+[requirements]
+process_closed = "steam.exe"
+requires_admin = false

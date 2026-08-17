@@ -1,0 +1,47 @@
+import { Theme } from "../theme.slint";
+
+export component MinimalButton {
+    in property <string> text: "Button";
+    in property <bool> primary: false;
+    in property <bool> danger: false;
+    in property <bool> enabled: true;
+    in property <length> custom-width: 100px;
+    in property <length> custom-height: 32px;
+    callback clicked();
+
+    min-width: root.custom-width;
+    height: root.custom-height;
+
+    container := Rectangle {
+        background: !root.enabled ? Theme.surface-active.darker(0.3)
+            : root.primary ? (touch.pressed ? Theme.accent-active : touch.has-hover ? Theme.accent-hover : Theme.accent)
+            : root.danger ? (touch.pressed ? Theme.status-danger.darker(0.3) : touch.has-hover ? Theme.status-danger.darker(0.1) : Theme.status-danger)
+            : (touch.pressed ? Theme.surface-active : touch.has-hover ? Theme.surface-hover : Theme.surface);
+        border-color: root.primary || root.danger ? transparent : Theme.border;
+        border-width: 1px;
+        border-radius: Theme.radius-sm;
+
+        animate background { duration: 100ms; }
+
+        HorizontalLayout {
+            alignment: center;
+            padding-left: 12px;
+            padding-right: 12px;
+
+            Text {
+                text: root.text;
+                font-size: Theme.font-sm;
+                font-weight: root.primary ? 600 : 500;
+                color: !root.enabled ? Theme.text-muted
+                    : (root.primary || root.danger) ? #FFFFFF
+                    : Theme.text-primary;
+                vertical-alignment: center;
+            }
+        }
+
+        touch := TouchArea {
+            enabled: root.enabled;
+            clicked => { root.clicked(); }
+        }
+    }
+}

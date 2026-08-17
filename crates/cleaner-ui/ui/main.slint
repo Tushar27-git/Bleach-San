@@ -1,0 +1,272 @@
+import { Theme } from "theme.slint";
+import { OverviewPage } from "pages/overview.slint";
+import { CleanupPage, UICleanerItem } from "pages/cleanup.slint";
+import { StoragePage, UIStorageItem } from "pages/storage.slint";
+import { LargeFilesPage, UILargeFileItem } from "pages/large_files.slint";
+import { SettingsPage } from "pages/settings.slint";
+
+export { UICleanerItem, UIStorageItem, UILargeFileItem }
+
+export component AppWindow inherits Window {
+    title: "BleachSan";
+    preferred-width: 860px;
+    preferred-height: 580px;
+    min-width: 760px;
+    min-height: 500px;
+    background: Theme.background;
+    default-font-family: "Segoe UI Variable, Segoe UI, Inter, sans-serif";
+
+    // Application State Properties
+    in-out property <int> active-tab: 0; // 0: Overview, 1: Cleanup, 2: Storage, 3: Settings
+
+    // Overview state
+    in property <string> reclaimable-space: "0 B";
+    in property <string> total-candidates-count: "0";
+    in property <string> last-cleaned-time: "Never";
+
+    // Cleanup state
+    in property <[UICleanerItem]> cleaner-items: [];
+    in property <string> total-selected-size: "0 B";
+    in property <int> total-selected-count: 0;
+    in property <bool> is-scanning: false;
+    in property <bool> is-cleaning: false;
+    in property <float> scan-progress: 0.0;
+    in property <string> status-message: "Ready";
+
+    // Storage state
+    in property <[UIStorageItem]> storage-items: [];
+    in property <bool> is-analyzing: false;
+
+    // Large Files state
+    in property <[UILargeFileItem]> large-file-items: [];
+    in property <bool> is-large-scanning: false;
+    in property <bool> is-large-deleting: false;
+    in property <string> large-status-message: "Ready";
+
+    // Settings state
+    in property <bool> task-scheduler-enabled: false;
+    in property <string> app-version: "0.1.0";
+
+    // Callbacks to Rust
+    callback request-scan();
+    callback request-clean();
+    callback request-toggle-item(string, bool);
+    callback request-select-all(bool);
+    callback request-storage-analysis();
+    
+    // Large Files callbacks
+    callback request-large-scan();
+    callback request-large-delete();
+    callback request-toggle-large-item(string, bool);
+    
+    callback request-toggle-scheduler(bool);
+
+    HorizontalLayout {
+        // Left Navigation Sidebar
+        Rectangle {
+            width: 170px;
+            background: Theme.surface;
+            border-color: Theme.border;
+            border-width: 1px;
+
+            VerticalLayout {
+                padding: 16px;
+                spacing: 8px;
+                alignment: start;
+
+                // Brand
+                HorizontalLayout {
+                    spacing: 8px;
+                    padding-bottom: 12px;
+
+                    Rectangle {
+                        width: 18px;
+                        height: 18px;
+                        background: Theme.accent;
+                        border-radius: 4px;
+                    }
+
+                    Text {
+                        text: "BleachSan";
+                        font-size: Theme.font-md;
+                        font-weight: 700;
+                        color: Theme.text-primary;
+                        vertical-alignment: center;
+                    }
+                }
+
+                // Nav Buttons
+                nav_item_0 := Rectangle {
+                    height: 34px;
+                    background: root.active-tab == 0 ? Theme.surface-active : (t0.has-hover ? Theme.surface-hover : transparent);
+                    border-radius: Theme.radius-sm;
+
+                    HorizontalLayout {
+                        padding-left: 10px;
+                        Text {
+                            text: "Overview";
+                            font-size: Theme.font-sm;
+                            font-weight: root.active-tab == 0 ? 600 : 500;
+                            color: root.active-tab == 0 ? Theme.text-primary : Theme.text-secondary;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    t0 := TouchArea {
+                        clicked => { root.active-tab = 0; }
+                    }
+                }
+
+                nav_item_1 := Rectangle {
+                    height: 34px;
+                    background: root.active-tab == 1 ? Theme.surface-active : (t1.has-hover ? Theme.surface-hover : transparent);
+                    border-radius: Theme.radius-sm;
+
+                    HorizontalLayout {
+                        padding-left: 10px;
+                        Text {
+                            text: "Cleanup";
+                            font-size: Theme.font-sm;
+                            font-weight: root.active-tab == 1 ? 600 : 500;
+                            color: root.active-tab == 1 ? Theme.text-primary : Theme.text-secondary;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    t1 := TouchArea {
+                        clicked => { root.active-tab = 1; }
+                    }
+                }
+
+                nav_item_2 := Rectangle {
+                    height: 34px;
+                    background: root.active-tab == 2 ? Theme.surface-active : (t2.has-hover ? Theme.surface-hover : transparent);
+                    border-radius: Theme.radius-sm;
+
+                    HorizontalLayout {
+                        padding-left: 10px;
+                        Text {
+                            text: "Storage";
+                            font-size: Theme.font-sm;
+                            font-weight: root.active-tab == 2 ? 600 : 500;
+                            color: root.active-tab == 2 ? Theme.text-primary : Theme.text-secondary;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    t2 := TouchArea {
+                        clicked => { root.active-tab = 2; }
+                    }
+                }
+
+                nav_item_3 := Rectangle {
+                    height: 34px;
+                    background: root.active-tab == 3 ? Theme.surface-active : (t3.has-hover ? Theme.surface-hover : transparent);
+                    border-radius: Theme.radius-sm;
+
+                    HorizontalLayout {
+                        padding-left: 10px;
+                        Text {
+                            text: "Large Junk";
+                            font-size: Theme.font-sm;
+                            font-weight: root.active-tab == 3 ? 600 : 500;
+                            color: root.active-tab == 3 ? Theme.text-primary : Theme.text-secondary;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    t3 := TouchArea {
+                        clicked => { root.active-tab = 3; }
+                    }
+                }
+
+                nav_item_4 := Rectangle {
+                    height: 34px;
+                    background: root.active-tab == 4 ? Theme.surface-active : (t4.has-hover ? Theme.surface-hover : transparent);
+                    border-radius: Theme.radius-sm;
+
+                    HorizontalLayout {
+                        padding-left: 10px;
+                        Text {
+                            text: "Settings";
+                            font-size: Theme.font-sm;
+                            font-weight: root.active-tab == 4 ? 600 : 500;
+                            color: root.active-tab == 4 ? Theme.text-primary : Theme.text-secondary;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    t4 := TouchArea {
+                        clicked => { root.active-tab = 4; }
+                    }
+                }
+            }
+        }
+
+        // Main Page Views
+        Rectangle {
+            horizontal-stretch: 1;
+            vertical-stretch: 1;
+
+            if root.active-tab == 0 : OverviewPage {
+                width: 100%;
+                height: 100%;
+                reclaimable-space: root.reclaimable-space;
+                total-items-count: root.total-candidates-count;
+                last-cleaned-time: root.last-cleaned-time;
+                is-scanning: root.is-scanning;
+                start-quick-scan => {
+                    root.active-tab = 1;
+                    root.request-scan();
+                }
+                switch-to-cleanup => {
+                    root.active-tab = 1;
+                }
+            }
+
+            if root.active-tab == 1 : CleanupPage {
+                width: 100%;
+                height: 100%;
+                items: root.cleaner-items;
+                total-selected-size: root.total-selected-size;
+                total-selected-count: root.total-selected-count;
+                is-scanning: root.is-scanning;
+                is-cleaning: root.is-cleaning;
+                progress-val: root.scan-progress;
+                status-text: root.status-message;
+                trigger-scan => { root.request-scan(); }
+                trigger-clean => { root.request-clean(); }
+                toggle-item(id, c) => { root.request-toggle-item(id, c); }
+                select-all(c) => { root.request-select-all(c); }
+            }
+
+            if root.active-tab == 2 : StoragePage {
+                width: 100%;
+                height: 100%;
+                items: root.storage-items;
+                is-analyzing: root.is-analyzing;
+                trigger-analysis => { root.request-storage-analysis(); }
+            }
+
+            if root.active-tab == 3 : LargeFilesPage {
+                width: 100%;
+                height: 100%;
+                items: root.large-file-items;
+                is-scanning: root.is-large-scanning;
+                is-deleting: root.is-large-deleting;
+                status-text: root.large-status-message;
+                trigger-scan => { root.request-large-scan(); }
+                trigger-delete => { root.request-large-delete(); }
+                toggle-item(id, c) => { root.request-toggle-large-item(id, c); }
+            }
+
+            if root.active-tab == 4 : SettingsPage {
+                width: 100%;
+                height: 100%;
+                task-scheduler-enabled: root.task-scheduler-enabled;
+                app-version: root.app-version;
+                toggle-task-scheduler(c) => { root.request-toggle-scheduler(c); }
+            }
+        }
+    }
+}

@@ -1,0 +1,28 @@
+id = "wer"
+name = "Windows Error Reporting"
+category = "system"
+description = "Crash logs and diagnostics reports collected by Windows Error Reporting."
+safety = "Safe"
+
+[[targets]]
+path = "%PROGRAMDATA%\\Microsoft\\Windows\\WER\\ReportArchive"
+action = "DeleteContents"
+allowed_root = "%PROGRAMDATA%\\Microsoft\\Windows\\WER"
+
+[[targets]]
+path = "%PROGRAMDATA%\\Microsoft\\Windows\\WER\\ReportQueue"
+action = "DeleteContents"
+allowed_root = "%PROGRAMDATA%\\Microsoft\\Windows\\WER"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Microsoft\\Windows\\WER\\ReportArchive"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Microsoft\\Windows\\WER"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Microsoft\\Windows\\WER\\ReportQueue"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Microsoft\\Windows\\WER"
+
+[requirements]
+requires_admin = false
