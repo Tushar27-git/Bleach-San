@@ -79,6 +79,16 @@ pub fn resolve_target_paths(target: &RuleTarget, target_drive: Option<&str>) -> 
                             .max_depth(limit)
                             .skip_hidden(false)
                             .follow_links(false)
+                            .parallelism(jwalk::Parallelism::Serial)
+                            .process_read_dir(|_, _, _, children| {
+                                for dir_entry_result in children.iter_mut() {
+                                    if let Ok(dir_entry) = dir_entry_result {
+                                        if cleaner_platform_windows::filesystem::is_junction_or_symlink(&dir_entry.path()).unwrap_or(false) {
+                                            dir_entry.read_children_path = None;
+                                        }
+                                    }
+                                }
+                            })
                         {
                             if let Ok(dir_entry) = entry {
                                 if dir_entry.file_type.is_dir() {

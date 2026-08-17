@@ -5,6 +5,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use jwalk::WalkDir;
 
 pub struct StorageAnalyzer;
 
@@ -26,9 +27,12 @@ impl StorageAnalyzer {
 
         let entries: Vec<_> = read_dir.flatten().collect();
 
-        let mut items: Vec<StorageItem> = entries
-            .par_iter()
-            .filter_map(|entry| {
+        let pool = rayon::ThreadPoolBuilder::new().num_threads(2).build().unwrap_or_else(|_| rayon::ThreadPoolBuilder::new().build().unwrap());
+        
+        let mut items: Vec<StorageItem> = pool.install(|| {
+            entries
+                .into_par_iter()
+                .filter_map(|entry| {
                 if cancel_flag.load(Ordering::Relaxed) {
                     return None;
                 }
@@ -71,7 +75,8 @@ impl StorageAnalyzer {
                     None
                 }
             })
-            .collect();
+            .collect()
+        });
 
         // Sort descending by size
         items.sort_by(|a, b| b.size_bytes.cmp(&a.size_bytes));
@@ -79,36 +84,38 @@ impl StorageAnalyzer {
         items
     }
 
-    /// Recursively calculates the byte size and file count of a folder.
+    /// Recursively calculates the byte size and file count of a folder using parallel jwalk.
     fn calculate_folder_size(dir: &Path, cancel_flag: &Arc<AtomicBool>) -> (u64, usize) {
         let mut total_bytes = 0;
         let mut file_count = 0;
-        let mut stack = vec![dir.to_path_buf()];
 
-        while let Some(current) = stack.pop() {
+        for entry in WalkDir::new(dir)
+            .skip_hidden(false)
+            .follow_links(false)
+            .parallelism(jwalk::Parallelism::Serial)
+            .process_read_dir(|_, _, _, children| {
+                for dir_entry_result in children.iter_mut() {
+                    if let Ok(dir_entry) = dir_entry_result {
+                        if is_junction_or_symlink(&dir_entry.path()).unwrap_or(false) {
+                            dir_entry.read_children_path = None;
+                        }
+                    }
+                }
+            }) 
+        {
             if cancel_flag.load(Ordering::Relaxed) {
                 break;
             }
 
-            let read = match fs::read_dir(&current) {
-                Ok(r) => r,
-                Err(_) => continue,
-            };
-
-            for entry in read.flatten() {
-                if cancel_flag.load(Ordering::Relaxed) {
-                    break;
-                }
-
-                let path = entry.path();
-                let is_symlink = is_junction_or_symlink(&path).unwrap_or(false);
-
-                if let Ok(meta) = entry.metadata() {
-                    if meta.is_dir() && !is_symlink {
-                        stack.push(path);
-                    } else {
-                        total_bytes += meta.len();
-                        file_count += 1;
+            if let Ok(dir_entry) = entry {
+                if !dir_entry.file_type.is_dir() {
+                    let path = dir_entry.path();
+                    let is_symlink = is_junction_or_symlink(&path).unwrap_or(false);
+                    if !is_symlink {
+                        if let Ok(meta) = dir_entry.metadata() {
+                            total_bytes += meta.len();
+                            file_count += 1;
+                        }
                     }
                 }
             }
@@ -174,42 +181,44 @@ impl StorageAnalyzer {
             if !dir.exists() || !dir.is_dir() {
                 continue;
             }
-            let mut stack = vec![dir];
-
-            while let Some(current) = stack.pop() {
+            for entry in WalkDir::new(dir)
+                .skip_hidden(false)
+                .follow_links(false)
+                .parallelism(jwalk::Parallelism::RayonNewPool(1))
+                .process_read_dir(|_, _, _, children| {
+                    for dir_entry_result in children.iter_mut() {
+                        if let Ok(dir_entry) = dir_entry_result {
+                            if is_junction_or_symlink(&dir_entry.path()).unwrap_or(false) {
+                                dir_entry.read_children_path = None;
+                            }
+                        }
+                    }
+                }) 
+            {
                 if cancel_flag.load(Ordering::Relaxed) {
                     break;
                 }
-                let read = match fs::read_dir(&current) {
-                    Ok(r) => r,
-                    Err(_) => continue,
-                };
-                for entry in read.flatten() {
-                    if cancel_flag.load(Ordering::Relaxed) {
-                        break;
-                    }
-                    let path = entry.path();
-                    let is_symlink = is_junction_or_symlink(&path).unwrap_or(false);
-
-                    if let Ok(meta) = entry.metadata() {
-                        if meta.is_dir() && !is_symlink {
-                            stack.push(path);
-                        } else if !is_symlink {
-                            let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
-                            let is_large = meta.len() > size_threshold;
-                            
-                            // Include if it matches junk extensions AND is large, or if it's REALLY large (> 250MB) regardless of extension
-                            if (junk_extensions.contains(&ext.as_str()) && is_large) || meta.len() > 250 * 1024 * 1024 {
-                                let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("Unknown").to_string();
-                                items.push(StorageItem {
-                                    path,
-                                    name: name.clone(),
-                                    size_bytes: meta.len(),
-                                    is_dir: false,
-                                    child_count: 0,
-                                    category: Self::categorize_file(&name),
-                                    is_selected: false,
-                                });
+                if let Ok(dir_entry) = entry {
+                    if !dir_entry.file_type.is_dir() {
+                        let path = dir_entry.path();
+                        let is_symlink = is_junction_or_symlink(&path).unwrap_or(false);
+                        if !is_symlink {
+                            if let Ok(meta) = dir_entry.metadata() {
+                                let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
+                                let is_large = meta.len() > size_threshold;
+                                
+                                if (junk_extensions.contains(&ext.as_str()) && is_large) || meta.len() > 250 * 1024 * 1024 {
+                                    let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("Unknown").to_string();
+                                    items.push(StorageItem {
+                                        path,
+                                        name: name.clone(),
+                                        size_bytes: meta.len(),
+                                        is_dir: false,
+                                        child_count: 0,
+                                        category: Self::categorize_file(&name),
+                                        is_selected: false,
+                                    });
+                                }
                             }
                         }
                     }

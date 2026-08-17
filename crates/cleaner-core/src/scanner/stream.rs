@@ -38,7 +38,20 @@ pub fn scan_directory_bounded(
         return stats;
     }
 
-    for entry in WalkDir::new(dir).skip_hidden(false).follow_links(false) {
+    for entry in WalkDir::new(dir)
+        .skip_hidden(false)
+        .follow_links(false)
+        .parallelism(jwalk::Parallelism::RayonNewPool(1))
+        .process_read_dir(|_, _, _, children| {
+            for dir_entry_result in children.iter_mut() {
+                if let Ok(dir_entry) = dir_entry_result {
+                    if is_junction_or_symlink(&dir_entry.path()).unwrap_or(false) {
+                        dir_entry.read_children_path = None;
+                    }
+                }
+            }
+        })
+    {
         if cancel_flag.load(Ordering::Relaxed) {
             break;
         }

@@ -18,12 +18,16 @@ pub fn scan_all_rules(
     progress_tx: Option<Sender<ScanProgress>>,
     cancel_flag: Arc<AtomicBool>,
 ) -> Vec<CleanupPlan> {
-    let plans: Vec<CleanupPlan> = rules
-        .par_iter()
-        .map(|rule| {
-            ScanWorker::scan_rule(rule, target_drive, progress_tx.as_ref(), &cancel_flag)
-        })
-        .collect();
+    let pool = rayon::ThreadPoolBuilder::new().num_threads(2).build().unwrap_or_else(|_| rayon::ThreadPoolBuilder::new().build().unwrap());
+    
+    let plans: Vec<CleanupPlan> = pool.install(|| {
+        rules
+            .par_iter()
+            .map(|rule| {
+                ScanWorker::scan_rule(rule, target_drive, progress_tx.as_ref(), &cancel_flag)
+            })
+            .collect()
+    });
 
     plans
 }
