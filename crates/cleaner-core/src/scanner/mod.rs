@@ -14,13 +14,14 @@ use std::sync::Arc;
 /// Scans a collection of cleaner rules in parallel with bounded Rayon concurrency.
 pub fn scan_all_rules(
     rules: &[CleanerRule],
+    target_drive: Option<&str>,
     progress_tx: Option<Sender<ScanProgress>>,
     cancel_flag: Arc<AtomicBool>,
 ) -> Vec<CleanupPlan> {
     let plans: Vec<CleanupPlan> = rules
         .par_iter()
         .map(|rule| {
-            ScanWorker::scan_rule(rule, progress_tx.as_ref(), &cancel_flag)
+            ScanWorker::scan_rule(rule, target_drive, progress_tx.as_ref(), &cancel_flag)
         })
         .collect();
 

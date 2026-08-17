@@ -28,16 +28,12 @@ fallback = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\Loca
 # or we can keep static paths for the Browser cache since it doesn't move with storage.path usually. 
 # But the user wanted dynamic discovery for the 0 bytes one (storage.path).
 [[targets]]
-path = "%LOCALAPPDATA%\\Spotify\\Storage"
 action = "DeleteContents"
-
-[[targets]]
-path = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalCache\\Spotify\\Browser"
-action = "DeleteContents"
-
-[[targets]]
-path = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalState\\Spotify\\Storage"
-action = "DeleteContents"
+[targets.discovery]
+type = "deep_search"
+base_paths = ["%LOCALAPPDATA%\\Spotify", "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0"]
+target_names = ["Data", "Storage", "Browser"]
+max_depth = 4
 
 [requirements]
 process_closed = "Spotify.exe"

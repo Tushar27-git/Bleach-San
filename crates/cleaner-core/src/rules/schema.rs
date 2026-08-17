@@ -24,6 +24,12 @@ pub enum DiscoveryStrategy {
     Glob {
         pattern: String,
     },
+    #[serde(rename = "deep_search")]
+    DeepSearch {
+        base_paths: Vec<String>,
+        target_names: Vec<String>,
+        max_depth: Option<usize>,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

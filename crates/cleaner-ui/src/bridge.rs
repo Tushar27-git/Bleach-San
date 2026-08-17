@@ -80,10 +80,13 @@ pub fn setup_ui_bridge(window: &AppWindow) {
     let state_scan = Arc::clone(&state);
     let handle_scan = window.as_weak();
     window.on_request_scan(move || {
-        if let Some(h) = handle_scan.upgrade() {
+        let drive_str = if let Some(h) = handle_scan.upgrade() {
             h.set_is_scanning(true);
             h.set_status_message("Scanning system & application targets...".into());
-        }
+            h.get_selected_drive().to_string()
+        } else {
+            "C:\\".to_string()
+        };
 
         let state_worker = Arc::clone(&state_scan);
         let handle_worker = handle_scan.clone();
@@ -93,7 +96,7 @@ pub fn setup_ui_bridge(window: &AppWindow) {
             let cancel = Arc::new(AtomicBool::new(false));
             state_worker.lock().unwrap().cancel_flag = Arc::clone(&cancel);
 
-            let plans = scan_all_rules(&rules, None, cancel);
+            let plans = scan_all_rules(&rules, Some(&drive_str), None, cancel);
             let total_bytes = calculate_total_selected_bytes(&plans);
             let total_candidates: usize = plans.iter().map(|p| p.candidates.len()).sum();
             let selected_count = plans.iter().filter(|p| p.is_selected).count();
@@ -138,9 +141,15 @@ pub fn setup_ui_bridge(window: &AppWindow) {
             let total_reclaimed: u64 = results.iter().map(|r| r.reclaimed_bytes).sum();
 
             // Re-scan after clean to refresh accurate byte states
+            let drive_str = if let Some(h) = handle_worker.upgrade() {
+                h.get_selected_drive().to_string()
+            } else {
+                "C:\\".to_string()
+            };
+            
             let rules = get_embedded_rules();
             let cancel = Arc::new(AtomicBool::new(false));
-            let refreshed_plans = scan_all_rules(&rules, None, cancel);
+            let refreshed_plans = scan_all_rules(&rules, Some(&drive_str), None, cancel);
             let refreshed_total = calculate_total_selected_bytes(&refreshed_plans);
             let refreshed_candidates: usize = refreshed_plans.iter().map(|p| p.candidates.len()).sum();
             let selected_count = refreshed_plans.iter().filter(|p| p.is_selected).count();
@@ -335,7 +344,6 @@ pub fn setup_ui_bridge(window: &AppWindow) {
             let reclaimed = StorageAnalyzer::delete_storage_items(&items);
             
             // Re-scan to update the list
-            let cancel = Arc::new(AtomicBool::new(false));
             
             let mut s = state_worker.lock().unwrap();
             s.large_files.retain(|f| !items.iter().any(|i| i.path == f.path && i.is_selected));

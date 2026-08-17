@@ -3,7 +3,7 @@ import { MinimalButton } from "../components/button.slint";
 import { MinimalCheckbox } from "../components/checkbox.slint";
 import { MinimalBadge } from "../components/badge.slint";
 import { MinimalProgressBar } from "../components/progress_bar.slint";
-import { ListView } from "std-widgets.slint";
+import { ListView, ComboBox } from "std-widgets.slint";
 
 export struct UICleanerItem {
     id: string,
@@ -26,6 +26,8 @@ export component CleanupPage {
     in property <bool> is-cleaning: false;
     in property <float> progress-val: 0.0;
     in property <string> status-text: "Ready to scan.";
+    in property <[string]> available-drives: ["C:\\"];
+    in-out property <string> selected-drive: "C:\\";
 
     callback trigger-scan();
     callback trigger-clean();
@@ -60,6 +62,13 @@ export component CleanupPage {
             HorizontalLayout {
                 spacing: 10px;
                 alignment: end;
+
+                ComboBox {
+                    width: 100px;
+                    model: root.available-drives;
+                    current-value <=> root.selected-drive;
+                    enabled: !root.is-scanning && !root.is-cleaning;
+                }
 
                 MinimalButton {
                     text: root.is-scanning ? "Scanning..." : "Scan All";

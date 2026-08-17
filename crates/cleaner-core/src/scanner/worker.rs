@@ -15,6 +15,7 @@ impl ScanWorker {
     /// Scans a single cleaner rule and produces a structured CleanupPlan.
     pub fn scan_rule(
         rule: &CleanerRule,
+        target_drive: Option<&str>,
         progress_tx: Option<&Sender<ScanProgress>>,
         cancel_flag: &Arc<AtomicBool>,
     ) -> CleanupPlan {
@@ -64,7 +65,7 @@ impl ScanWorker {
             }
 
             // Resolve target paths (handles config files, glob patterns, or static path)
-            let resolved_paths = crate::rules::discovery_resolver::resolve_target_paths(target);
+            let resolved_paths = crate::rules::discovery_resolver::resolve_target_paths(target, target_drive);
             if resolved_paths.is_empty() {
                 continue;
             }
@@ -78,10 +79,23 @@ impl ScanWorker {
                     }
                 };
 
-                let resolved_root = target
+                let mut resolved_root = target
                     .allowed_root
                     .as_ref()
                     .and_then(|r| resolve_env_vars(r).ok());
+                    
+                if let (Some(target_drv), Some(ref mut root_path)) = (target_drive, &mut resolved_root) {
+                    let clean_drv = target_drv.trim_end_matches('\\');
+                    let path_str = root_path.to_string_lossy().to_string();
+                    if path_str.len() >= 3 && &path_str[1..3] == ":\\" {
+                        let current_drive = &path_str[0..1];
+                        let target_letter = &clean_drv[0..1];
+                        if !current_drive.eq_ignore_ascii_case(target_letter) {
+                            let remainder = &path_str[2..];
+                            *root_path = std::path::PathBuf::from(format!("{}{}", clean_drv, remainder));
+                        }
+                    }
+                }
 
                 // Validate path safety & confinement
                 let validated_path = match validate_target_path(&resolved_path, resolved_root.as_deref()) {

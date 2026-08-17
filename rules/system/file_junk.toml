@@ -1,0 +1,48 @@
+id = "file_junk"
+name = "System File Junk"
+category = "system"
+description = "Common junk files like .bak, .old, .tmp scattered in temporary locations."
+safety = "Safe"
+
+[[targets]]
+action = "DeleteFilesMatching"
+pattern = "%TEMP%\\*.tmp"
+allowed_root = "%TEMP%"
+[targets.discovery]
+type = "glob"
+pattern = "%TEMP%\\**\\*.tmp"
+
+[[targets]]
+action = "DeleteFilesMatching"
+pattern = "%TEMP%\\*.log"
+allowed_root = "%TEMP%"
+[targets.discovery]
+type = "glob"
+pattern = "%TEMP%\\**\\*.log"
+
+[[targets]]
+action = "DeleteFilesMatching"
+pattern = "%TEMP%\\*.bak"
+allowed_root = "%TEMP%"
+[targets.discovery]
+type = "glob"
+pattern = "%TEMP%\\**\\*.bak"
+
+[[targets]]
+action = "DeleteFilesMatching"
+pattern = "%SYSTEMROOT%\\Temp\\*.tmp"
+allowed_root = "%SYSTEMROOT%\\Temp"
+[targets.discovery]
+type = "glob"
+pattern = "%SYSTEMROOT%\\Temp\\**\\*.tmp"
+
+[[targets]]
+action = "DeleteFilesMatching"
+pattern = "%SYSTEMROOT%\\Temp\\*.log"
+allowed_root = "%SYSTEMROOT%\\Temp"
+[targets.discovery]
+type = "glob"
+pattern = "%SYSTEMROOT%\\Temp\\**\\*.log"
+
+[requirements]
+requires_admin = true

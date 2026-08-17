@@ -3,6 +3,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use jwalk::WalkDir;
 
 pub struct ScanStats {
     pub total_bytes: u64,
@@ -37,30 +38,25 @@ pub fn scan_directory_bounded(
         return stats;
     }
 
-    let mut stack = vec![dir.to_path_buf()];
-
-    while let Some(current) = stack.pop() {
+    for entry in WalkDir::new(dir).skip_hidden(false).follow_links(false) {
         if cancel_flag.load(Ordering::Relaxed) {
             break;
         }
 
-        let read_res = match fs::read_dir(&current) {
-            Ok(r) => r,
-            Err(_) => continue, // Gracefully skip inaccessible paths
-        };
-
-        for entry in read_res.flatten() {
-            if cancel_flag.load(Ordering::Relaxed) {
-                break;
+        if let Ok(dir_entry) = entry {
+            let path = dir_entry.path();
+            if path == dir {
+                continue;
             }
 
-            let path = entry.path();
+            // check symlink logic explicitly if needed
             let is_symlink = is_junction_or_symlink(&path).unwrap_or(false);
+            if is_symlink {
+                continue;
+            }
 
-            if let Ok(meta) = entry.metadata() {
-                if meta.is_dir() && !is_symlink {
-                    stack.push(path.clone());
-                } else {
+            if !dir_entry.file_type.is_dir() {
+                if let Ok(meta) = dir_entry.metadata() {
                     let file_name = path
                         .file_name()
                         .and_then(|n| n.to_str())

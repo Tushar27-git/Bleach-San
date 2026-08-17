@@ -1,0 +1,13 @@
+id = "windows_update"
+name = "Windows Update Cache"
+category = "system"
+description = "Temporary files downloaded for Windows Updates that are safe to remove."
+safety = "Safe"
+
+[[targets]]
+path = "%SYSTEMROOT%\\SoftwareDistribution\\Download"
+action = "DeleteContents"
+allowed_root = "%SYSTEMROOT%\\SoftwareDistribution\\Download"
+
+[requirements]
+requires_admin = true

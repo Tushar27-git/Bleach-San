@@ -16,3 +16,4 @@ tracing = { workspace = true }
 thiserror = { workspace = true }
 anyhow = { workspace = true }
 glob = "0.3.4"
+jwalk = "0.8"
