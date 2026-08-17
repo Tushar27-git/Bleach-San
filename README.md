@@ -35,7 +35,14 @@ The application enforces a strict safety boundary before any file deletion occur
 - `crates/cleaner-app/`: Combined executable entry point.
 - `rules/`: External TOML configurations defining cleanup targets for browsers and applications.
 
-## Building and Running
+## Download & Installation
+
+You can run BleachSan without needing to use the terminal or compile code:
+
+1. **GitHub Releases:** Navigate to the [Releases](https://github.com/Tushar27-git/Bleach-San/releases) section of this repository and download the latest compiled executable.
+2. **Direct Execution:** Alternatively, if you have downloaded or cloned the full repository, you can simply open the `target\release\` folder in Windows Explorer and double-click `bleachsan.exe` to launch the graphical interface directly.
+
+## Building from Source
 
 Ensure you have the Rust toolchain installed for Windows x86-64.
 
