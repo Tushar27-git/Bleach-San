@@ -2,8 +2,7 @@ import { Theme } from "../theme.slint";
 import { MinimalButton } from "../components/button.slint";
 import { MinimalBadge } from "../components/badge.slint";
 import { MinimalProgressBar } from "../components/progress_bar.slint";
-import { ListView } from "std-widgets.slint";
-
+import { ListView, ComboBox } from "std-widgets.slint";
 export struct UIStorageItem {
     name: string,
     path_display: string,
@@ -15,7 +14,9 @@ export struct UIStorageItem {
 export component StoragePage {
     in property <[UIStorageItem]> items: [];
     in property <bool> is-analyzing: false;
-    in property <string> root-path: "%LOCALAPPDATA%";
+    in property <[string]> available-drives: ["C:\\"];
+    in-out property <string> selected-drive: "C:\\";
+    
     callback trigger-analysis();
 
     VerticalLayout {
@@ -43,12 +44,24 @@ export component StoragePage {
                 }
             }
 
-            MinimalButton {
-                text: root.is-analyzing ? "Analyzing..." : "Analyze Storage";
-                primary: true;
-                enabled: !root.is-analyzing;
-                custom-width: 140px;
-                clicked => { root.trigger-analysis(); }
+            HorizontalLayout {
+                spacing: 12px;
+                alignment: end;
+                
+                ComboBox {
+                    width: 100px;
+                    model: root.available-drives;
+                    current-value <=> root.selected-drive;
+                    enabled: !root.is-analyzing;
+                }
+
+                MinimalButton {
+                    text: root.is-analyzing ? "Analyzing..." : "Analyze Storage";
+                    primary: true;
+                    enabled: !root.is-analyzing;
+                    custom-width: 140px;
+                    clicked => { root.trigger-analysis(); }
+                }
             }
         }
 

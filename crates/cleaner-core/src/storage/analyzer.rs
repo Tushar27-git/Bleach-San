@@ -147,17 +147,23 @@ impl StorageAnalyzer {
         }
     }
 
-    /// Scans user directories for large junk files (e.g. >50MB) with specific extensions.
-    pub fn analyze_large_junk_files(cancel_flag: &Arc<AtomicBool>) -> Vec<StorageItem> {
+    /// Scans directories for large junk files (e.g. >50MB) with specific extensions.
+    pub fn analyze_large_junk_files(cancel_flag: &Arc<AtomicBool>, drive_str: &str) -> Vec<StorageItem> {
         let mut target_dirs = Vec::new();
-        if let Ok(home) = std::env::var("USERPROFILE") {
-            let home_path = Path::new(&home);
-            target_dirs.push(home_path.join("Downloads"));
-            target_dirs.push(home_path.join("Documents"));
-            target_dirs.push(home_path.join("Desktop"));
-        }
-        if let Ok(temp) = std::env::var("TEMP") {
-            target_dirs.push(PathBuf::from(temp));
+        
+        if drive_str.starts_with("C:") {
+            if let Ok(home) = std::env::var("USERPROFILE") {
+                let home_path = Path::new(&home);
+                target_dirs.push(home_path.join("Downloads"));
+                target_dirs.push(home_path.join("Documents"));
+                target_dirs.push(home_path.join("Desktop"));
+            }
+            if let Ok(temp) = std::env::var("TEMP") {
+                target_dirs.push(PathBuf::from(temp));
+            }
+        } else {
+            // For other drives, scan the root of the drive (or just the drive itself)
+            target_dirs.push(PathBuf::from(drive_str));
         }
 
         let junk_extensions = vec!["log", "tmp", "dmp", "old", "bak", "iso", "zip", "mp4", "cab"];

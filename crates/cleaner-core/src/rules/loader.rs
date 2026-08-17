@@ -77,6 +77,14 @@ pub fn get_embedded_rules() -> Vec<CleanerRule> {
         ("epic_games", include_str!("../../../../rules/applications/epic_games.toml")),
         ("windows_logs", include_str!("../../../../rules/system/windows_logs.toml")),
         ("windows_old", include_str!("../../../../rules/system/windows_old.toml")),
+        ("nvidia", include_str!("../../../../rules/applications/nvidia.toml")),
+        ("roblox", include_str!("../../../../rules/applications/roblox.toml")),
+        ("onedrive", include_str!("../../../../rules/applications/onedrive.toml")),
+        ("zoom", include_str!("../../../../rules/applications/zoom.toml")),
+        ("widgets", include_str!("../../../../rules/system/widgets.toml")),
+        ("defender_cache", include_str!("../../../../rules/system/defender_cache.toml")),
+        ("inet_cache", include_str!("../../../../rules/system/inet_cache.toml")),
+        ("recent_items", include_str!("../../../../rules/system/recent_items.toml")),
     ];
 
     let mut rules = Vec::new();

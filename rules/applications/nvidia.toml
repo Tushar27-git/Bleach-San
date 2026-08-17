@@ -1,0 +1,28 @@
+id = "nvidia"
+name = "NVIDIA Cache"
+category = "applications"
+description = "NVIDIA DirectX/OpenGL shader cache, compute cache, and temporary installer files."
+safety = "Safe"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\NVIDIA\\DXCache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\NVIDIA\\DXCache"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\NVIDIA\\GLCache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\NVIDIA\\GLCache"
+
+[[targets]]
+path = "%APPDATA%\\NVIDIA\\ComputeCache"
+action = "DeleteContents"
+allowed_root = "%APPDATA%\\NVIDIA\\ComputeCache"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\NVIDIA Corporation"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\NVIDIA Corporation"
+
+[requirements]
+requires_admin = false

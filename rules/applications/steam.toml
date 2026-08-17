@@ -10,6 +10,12 @@ path = "%LOCALAPPDATA%\\Steam\\htmlcache"
 action = "DeleteContents"
 allowed_root = "%LOCALAPPDATA%\\Steam\\htmlcache"
 
+# Steam's appcache (temporary data for the client)
+[[targets]]
+path = "C:\\Program Files (x86)\\Steam\\appcache"
+action = "DeleteContents"
+allowed_root = "C:\\Program Files (x86)\\Steam\\appcache"
+
 [requirements]
 process_closed = "steam.exe"
 requires_admin = false

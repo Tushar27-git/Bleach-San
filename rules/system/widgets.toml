@@ -1,0 +1,13 @@
+id = "widgets"
+name = "Windows Widgets Cache"
+category = "system"
+description = "Web cache and telemetry for Windows 11 Widgets (WebExperience)."
+safety = "Safe"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Packages\\MicrosoftWindows.Client.WebExperience_cw5n1h2txyewy\\LocalCache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Packages\\MicrosoftWindows.Client.WebExperience_cw5n1h2txyewy\\LocalCache"
+
+[requirements]
+requires_admin = false

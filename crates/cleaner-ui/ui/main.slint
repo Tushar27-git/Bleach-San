@@ -36,6 +36,10 @@ export component AppWindow inherits Window {
     // Storage state
     in property <[UIStorageItem]> storage-items: [];
     in property <bool> is-analyzing: false;
+    
+    // Drive selection
+    in property <[string]> available-drives: ["C:\\"];
+    in-out property <string> selected-drive: "C:\\";
 
     // Large Files state
     in property <[UILargeFileItem]> large-file-items: [];
@@ -245,6 +249,8 @@ export component AppWindow inherits Window {
                 height: 100%;
                 items: root.storage-items;
                 is-analyzing: root.is-analyzing;
+                available-drives: root.available-drives;
+                selected-drive <=> root.selected-drive;
                 trigger-analysis => { root.request-storage-analysis(); }
             }
 
@@ -255,6 +261,8 @@ export component AppWindow inherits Window {
                 is-scanning: root.is-large-scanning;
                 is-deleting: root.is-large-deleting;
                 status-text: root.large-status-message;
+                available-drives: root.available-drives;
+                selected-drive <=> root.selected-drive;
                 trigger-scan => { root.request-large-scan(); }
                 trigger-delete => { root.request-large-delete(); }
                 toggle-item(id, c) => { root.request-toggle-large-item(id, c); }

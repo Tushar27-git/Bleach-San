@@ -1,0 +1,14 @@
+id = "zoom"
+name = "Zoom Cache"
+category = "applications"
+description = "Cached Zoom meeting data, profile pictures, and logs."
+safety = "Safe"
+
+[[targets]]
+path = "%APPDATA%\\Zoom\\data"
+action = "DeleteContents"
+allowed_root = "%APPDATA%\\Zoom\\data"
+
+[requirements]
+process_closed = "Zoom.exe"
+requires_admin = false

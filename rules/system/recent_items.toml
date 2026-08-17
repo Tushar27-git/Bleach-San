@@ -1,0 +1,13 @@
+id = "recent_items"
+name = "Windows Recent Items"
+category = "system"
+description = "Shortcuts to recently accessed files and folders."
+safety = "Safe"
+
+[[targets]]
+path = "%APPDATA%\\Microsoft\\Windows\\Recent"
+action = "DeleteContents"
+allowed_root = "%APPDATA%\\Microsoft\\Windows\\Recent"
+
+[requirements]
+requires_admin = false

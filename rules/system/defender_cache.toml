@@ -1,0 +1,18 @@
+id = "defender_cache"
+name = "Windows Defender Updates"
+category = "system"
+description = "Old definition updates and scan logs for Microsoft Defender Antivirus."
+safety = "Safe"
+
+[[targets]]
+path = "C:\\ProgramData\\Microsoft\\Windows Defender\\Definition Updates"
+action = "DeleteContents"
+allowed_root = "C:\\ProgramData\\Microsoft\\Windows Defender\\Definition Updates"
+
+[[targets]]
+path = "C:\\ProgramData\\Microsoft\\Windows Defender\\Scans\\History\\Results"
+action = "DeleteContents"
+allowed_root = "C:\\ProgramData\\Microsoft\\Windows Defender\\Scans\\History\\Results"
+
+[requirements]
+requires_admin = true

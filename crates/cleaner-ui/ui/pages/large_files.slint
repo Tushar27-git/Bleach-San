@@ -3,7 +3,7 @@ import { MinimalButton } from "../components/button.slint";
 import { MinimalCheckbox } from "../components/checkbox.slint";
 import { MinimalBadge } from "../components/badge.slint";
 import { MinimalProgressBar } from "../components/progress_bar.slint";
-import { ListView } from "std-widgets.slint";
+import { ListView, ComboBox } from "std-widgets.slint";
 
 export struct UILargeFileItem {
     id: string, // Could be path
@@ -18,6 +18,8 @@ export component LargeFilesPage {
     in property <bool> is-scanning: false;
     in property <bool> is-deleting: false;
     in property <string> status-text: "Ready to scan.";
+    in property <[string]> available-drives: ["C:\\"];
+    in-out property <string> selected-drive: "C:\\";
 
     callback trigger-scan();
     callback trigger-delete();
@@ -51,6 +53,13 @@ export component LargeFilesPage {
             HorizontalLayout {
                 spacing: 10px;
                 alignment: end;
+                
+                ComboBox {
+                    width: 100px;
+                    model: root.available-drives;
+                    current-value <=> root.selected-drive;
+                    enabled: !root.is-scanning && !root.is-deleting;
+                }
 
                 MinimalButton {
                     text: root.is-scanning ? "Scanning..." : "Scan Large Files";

@@ -1,0 +1,19 @@
+id = "roblox"
+name = "Roblox Cache"
+category = "applications"
+description = "Cached Roblox game assets, downloads, and logs."
+safety = "Safe"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Roblox\\Downloads"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Roblox\\Downloads"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Roblox\\logs"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Roblox\\logs"
+
+[requirements]
+process_closed = "RobloxPlayerBeta.exe"
+requires_admin = false

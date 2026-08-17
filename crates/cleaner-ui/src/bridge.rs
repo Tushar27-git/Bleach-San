@@ -8,7 +8,7 @@ use cleaner_core::storage::StorageAnalyzer;
 use cleaner_platform_windows::task_scheduler::{
     is_task_registered, register_daily_task, unregister_task,
 };
-use slint::{ComponentHandle, ModelRc, VecModel};
+use slint::{ComponentHandle, ModelRc, VecModel, SharedString};
 use std::env;
 use std::path::PathBuf;
 use std::sync::atomic::AtomicBool;
@@ -19,6 +19,21 @@ pub struct UIState {
     pub plans: Vec<CleanupPlan>,
     pub large_files: Vec<cleaner_core::models::StorageItem>,
     pub cancel_flag: Arc<AtomicBool>,
+}
+
+fn get_available_drives() -> Vec<SharedString> {
+    let mut drives = Vec::new();
+    // Quick check for standard drives (C to Z)
+    for c in b'C'..=b'Z' {
+        let drive = format!("{}:\\", c as char);
+        if std::path::Path::new(&drive).exists() {
+            drives.push(SharedString::from(drive));
+        }
+    }
+    if drives.is_empty() {
+        drives.push(SharedString::from("C:\\"));
+    }
+    drives
 }
 
 pub fn setup_ui_bridge(window: &AppWindow) {
@@ -56,6 +71,10 @@ pub fn setup_ui_bridge(window: &AppWindow) {
     let ui_items: Vec<_> = initial_plans.iter().map(plan_to_ui_item).collect();
     window.set_cleaner_items(ModelRc::new(VecModel::from(ui_items)));
     state.lock().unwrap().plans = initial_plans;
+
+    // Set available drives
+    let drives = get_available_drives();
+    window.set_available_drives(ModelRc::new(VecModel::from(drives)));
 
     // --- 1. On Request Scan ---
     let state_scan = Arc::clone(&state);
@@ -199,16 +218,22 @@ pub fn setup_ui_bridge(window: &AppWindow) {
     // --- 5. On Storage Analysis ---
     let handle_storage = window.as_weak();
     window.on_request_storage_analysis(move || {
-        if let Some(h) = handle_storage.upgrade() {
+        let drive_str = if let Some(h) = handle_storage.upgrade() {
             h.set_is_analyzing(true);
-        }
+            h.get_selected_drive().to_string()
+        } else {
+            "C:\\".to_string()
+        };
 
         let handle_worker = handle_storage.clone();
         thread::spawn(move || {
             let cancel = Arc::new(AtomicBool::new(false));
-            let root = env::var("LOCALAPPDATA")
-                .map(PathBuf::from)
-                .unwrap_or_else(|_| PathBuf::from("C:\\"));
+            // Default to selected drive if we can't build a better root
+            let root = if drive_str.starts_with("C:") {
+                env::var("LOCALAPPDATA").map(PathBuf::from).unwrap_or_else(|_| PathBuf::from("C:\\"))
+            } else {
+                PathBuf::from(&drive_str)
+            };
 
             let results = StorageAnalyzer::analyze_directory(&root, &cancel, 50);
             let ui_items: Vec<_> = results.iter().map(storage_to_ui_item).collect();
@@ -243,10 +268,13 @@ pub fn setup_ui_bridge(window: &AppWindow) {
     let state_large_scan = Arc::clone(&state);
     let handle_large_scan = window.as_weak();
     window.on_request_large_scan(move || {
-        if let Some(h) = handle_large_scan.upgrade() {
+        let drive_str = if let Some(h) = handle_large_scan.upgrade() {
             h.set_is_large_scanning(true);
             h.set_large_status_message("Scanning for large junk files...".into());
-        }
+            h.get_selected_drive().to_string()
+        } else {
+            "C:\\".to_string()
+        };
 
         let state_worker = Arc::clone(&state_large_scan);
         let handle_worker = handle_large_scan.clone();
@@ -255,7 +283,7 @@ pub fn setup_ui_bridge(window: &AppWindow) {
             let cancel = Arc::new(AtomicBool::new(false));
             state_worker.lock().unwrap().cancel_flag = Arc::clone(&cancel);
 
-            let results = StorageAnalyzer::analyze_large_junk_files(&cancel);
+            let results = StorageAnalyzer::analyze_large_junk_files(&cancel, &drive_str);
             state_worker.lock().unwrap().large_files = results.clone();
 
             let ui_items: Vec<_> = results.iter().map(large_junk_to_ui_item).collect();
@@ -308,8 +336,10 @@ pub fn setup_ui_bridge(window: &AppWindow) {
             
             // Re-scan to update the list
             let cancel = Arc::new(AtomicBool::new(false));
-            let results = StorageAnalyzer::analyze_large_junk_files(&cancel);
-            state_worker.lock().unwrap().large_files = results.clone();
+            
+            let mut s = state_worker.lock().unwrap();
+            s.large_files.retain(|f| !items.iter().any(|i| i.path == f.path && i.is_selected));
+            let results = s.large_files.clone();
 
             let ui_items: Vec<_> = results.iter().map(large_junk_to_ui_item).collect();
 

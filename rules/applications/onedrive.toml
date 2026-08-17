@@ -1,0 +1,18 @@
+id = "onedrive"
+name = "OneDrive Cache"
+category = "applications"
+description = "OneDrive sync logs and setup telemetry."
+safety = "Safe"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Microsoft\\OneDrive\\logs"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Microsoft\\OneDrive\\logs"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Microsoft\\OneDrive\\setup\\logs"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Microsoft\\OneDrive\\setup\\logs"
+
+[requirements]
+requires_admin = false

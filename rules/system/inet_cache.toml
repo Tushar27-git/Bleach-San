@@ -1,0 +1,13 @@
+id = "inet_cache"
+name = "Temporary Internet Files"
+category = "system"
+description = "Legacy Windows Internet Explorer and system web cache."
+safety = "Safe"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Microsoft\\Windows\\INetCache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Microsoft\\Windows\\INetCache"
+
+[requirements]
+requires_admin = false
