@@ -43,7 +43,7 @@ impl ScanWorker {
             }
 
             // Check if special target (Recycle Bin)
-            if target.path == "SPECIAL:RECYCLE_BIN" {
+            if target.path.as_deref() == Some("SPECIAL:RECYCLE_BIN") {
                 if let Ok((bytes, count)) = get_recycle_bin_info(None) {
                     if bytes > 0 || count > 0 {
                         total_bytes += bytes;
@@ -63,71 +63,78 @@ impl ScanWorker {
                 continue;
             }
 
-            // Resolve environment variables
-            let resolved_path = match resolve_env_vars(&target.path) {
-                Ok(p) => p,
-                Err(e) => {
-                    warnings.push(format!("Failed to resolve path '{}': {}", target.path, e));
-                    continue;
-                }
-            };
-
-            let resolved_root = target
-                .allowed_root
-                .as_ref()
-                .and_then(|r| resolve_env_vars(r).ok());
-
-            // Validate path safety & confinement
-            let validated_path = match validate_target_path(&resolved_path, resolved_root.as_deref()) {
-                Ok(p) => p,
-                Err(e) => {
-                    tracing::debug!("Path validation skipped '{:?}': {}", resolved_path, e);
-                    continue;
-                }
-            };
-
-            if !validated_path.exists() {
+            // Resolve target paths (handles config files, glob patterns, or static path)
+            let resolved_paths = crate::rules::discovery_resolver::resolve_target_paths(target);
+            if resolved_paths.is_empty() {
                 continue;
             }
 
-            if let Some(tx) = progress_tx {
-                let _ = tx.send(ScanProgress {
-                    rule_id: rule.id.clone(),
-                    rule_name: rule.name.clone(),
-                    current_target: validated_path.to_string_lossy().to_string(),
-                    scanned_bytes: total_bytes,
-                    scanned_files: total_files,
-                    is_complete: false,
-                });
-            }
+            for path_str in resolved_paths {
+                let resolved_path = match resolve_env_vars(&path_str) {
+                    Ok(p) => p,
+                    Err(e) => {
+                        warnings.push(format!("Failed to resolve path '{}': {}", path_str, e));
+                        continue;
+                    }
+                };
 
-            let safety = classify_path_safety(&validated_path, rule.safety);
+                let resolved_root = target
+                    .allowed_root
+                    .as_ref()
+                    .and_then(|r| resolve_env_vars(r).ok());
 
-            let stats = match target.action {
-                RuleAction::DeleteContents | RuleAction::DeleteDirectory => {
-                    scan_directory_bounded(&validated_path, None, cancel_flag, 50)
+                // Validate path safety & confinement
+                let validated_path = match validate_target_path(&resolved_path, resolved_root.as_deref()) {
+                    Ok(p) => p,
+                    Err(e) => {
+                        tracing::debug!("Path validation skipped '{:?}': {}", resolved_path, e);
+                        continue;
+                    }
+                };
+
+                if !validated_path.exists() {
+                    continue;
                 }
-                RuleAction::DeleteFilesMatching => {
-                    let pat = target.pattern.as_deref().unwrap_or("*");
-                    scan_directory_bounded(&validated_path, Some(pat), cancel_flag, 50)
+
+                if let Some(tx) = progress_tx {
+                    let _ = tx.send(ScanProgress {
+                        rule_id: rule.id.clone(),
+                        rule_name: rule.name.clone(),
+                        current_target: validated_path.to_string_lossy().to_string(),
+                        scanned_bytes: total_bytes,
+                        scanned_files: total_files,
+                        is_complete: false,
+                    });
                 }
-                RuleAction::EmptyRecycleBin => scan_directory_bounded(&validated_path, None, cancel_flag, 50),
-            };
 
-            if stats.total_bytes > 0 || stats.file_count > 0 {
-                total_bytes += stats.total_bytes;
-                total_files += stats.file_count;
+                let safety = classify_path_safety(&validated_path, rule.safety);
 
-                candidates.push(TargetCandidate {
-                    path: validated_path.clone(),
-                    display_path: validated_path.to_string_lossy().to_string(),
-                    size_bytes: stats.total_bytes,
-                    file_count: stats.file_count,
-                    is_dir: validated_path.is_dir(),
-                    safety,
-                    is_locked: false,
-                    is_selected: !is_blocked_by_process && safety == SafetyLevel::Safe,
-                });
+                let stats = match target.action {
+                    RuleAction::DeleteContents | RuleAction::DeleteDirectory => {
+                        scan_directory_bounded(&validated_path, None, cancel_flag, 50)
+                    }
+                    RuleAction::DeleteFilesMatching => {
+                        let pat = target.pattern.as_deref().unwrap_or("*");
+                        scan_directory_bounded(&validated_path, Some(pat), cancel_flag, 50)
+                    }
+                    RuleAction::EmptyRecycleBin => scan_directory_bounded(&validated_path, None, cancel_flag, 50),
+                };
+
+                if stats.total_bytes > 0 || stats.file_count > 0 {
+                    total_bytes += stats.total_bytes;
+                    total_files += stats.file_count;
+
+                    candidates.push(TargetCandidate {
+                        path: validated_path.clone(),
+                        display_path: validated_path.to_string_lossy().to_string(),
+                        size_bytes: stats.total_bytes,
+                        file_count: stats.file_count,
+                        is_dir: validated_path.is_dir(),
+                        safety,
+                        is_locked: false,
+                        is_selected: !is_blocked_by_process && safety == SafetyLevel::Safe,
+                    });
+                }
             }
         }
 

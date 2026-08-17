@@ -10,11 +10,29 @@ pub enum RuleAction {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum DiscoveryStrategy {
+    #[serde(rename = "config")]
+    Config {
+        file: String,
+        format: String, // e.g. "key-value"
+        key: String,
+        fallback: Option<String>,
+        append: Option<String>, // Path to append after the key value
+    },
+    #[serde(rename = "glob")]
+    Glob {
+        pattern: String,
+    },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RuleTarget {
-    pub path: String,
+    pub path: Option<String>,
     pub action: RuleAction,
     pub pattern: Option<String>,
     pub allowed_root: Option<String>,
+    pub discovery: Option<DiscoveryStrategy>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

@@ -4,38 +4,40 @@ category = "applications"
 description = "Cached music streaming data, browser UI cache, and offline content for the Microsoft Store version of Spotify."
 safety = "Safe"
 
-# Classic Win32 install paths (older installs)
+# Read from Win32 prefs file
 [[targets]]
-path = "%LOCALAPPDATA%\\Spotify\\Data"
 action = "DeleteContents"
-allowed_root = "%LOCALAPPDATA%\\Spotify\\Data"
+[targets.discovery]
+Strategy = "Config"
+file = "%APPDATA%\\Spotify\\prefs"
+format = "prefs"
+key = "storage.path"
+fallback = "%LOCALAPPDATA%\\Spotify\\Data"
 
+# Read from UWP prefs file
+[[targets]]
+action = "DeleteContents"
+[targets.discovery]
+Strategy = "Config"
+file = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalCache\\Spotify\\prefs"
+format = "prefs"
+key = "storage.path"
+fallback = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalCache\\Spotify\\Data"
+
+# We should also clean the Browser cache. Since storage.path only points to Data, we can use Glob strategy as an example,
+# or we can keep static paths for the Browser cache since it doesn't move with storage.path usually. 
+# But the user wanted dynamic discovery for the 0 bytes one (storage.path).
 [[targets]]
 path = "%LOCALAPPDATA%\\Spotify\\Storage"
 action = "DeleteContents"
-allowed_root = "%LOCALAPPDATA%\\Spotify\\Storage"
-
-# Microsoft Store (UWP) install — LocalCache holds ALL browser + song cache (~600 MB+)
-[[targets]]
-path = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalCache\\Spotify\\Data"
-action = "DeleteContents"
-allowed_root = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalCache\\Spotify\\Data"
 
 [[targets]]
 path = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalCache\\Spotify\\Browser"
 action = "DeleteContents"
-allowed_root = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalCache\\Spotify\\Browser"
 
-[[targets]]
-path = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalCache\\Spotify\\prefs"
-action = "DeleteContents"
-allowed_root = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalCache\\Spotify\\prefs"
-
-# LocalState storage index (tiny but part of cache metadata)
 [[targets]]
 path = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalState\\Spotify\\Storage"
 action = "DeleteContents"
-allowed_root = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalState\\Spotify\\Storage"
 
 [requirements]
 process_closed = "Spotify.exe"
