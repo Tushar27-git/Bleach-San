@@ -20,3 +20,6 @@ tracing-appender = { workspace = true }
 thiserror = { workspace = true }
 anyhow = { workspace = true }
 serde_json = { workspace = true }
+
+[build-dependencies]
+winres = "0.1"
