@@ -448,4 +448,24 @@ fn test_process_guard_normalization_and_aliases() {
     }
 }
 
+#[test]
+fn test_spotify_embedded_rule_scanning() {
+    use cleaner_core::rules::loader::get_embedded_rules;
+    use cleaner_core::scanner::worker::ScanWorker;
+    use std::sync::atomic::AtomicBool;
+    use std::sync::Arc;
+
+    let rules = get_embedded_rules();
+    let spotify_rule = rules.iter().find(|r| r.id == "spotify");
+    assert!(spotify_rule.is_some(), "Spotify rule must be present in embedded rules");
+
+    let rule = spotify_rule.unwrap();
+    let cancel = Arc::new(AtomicBool::new(false));
+    let plan = ScanWorker::scan_rule(rule, Some("C:\\"), None, &cancel);
+
+    assert_eq!(plan.rule_id, "spotify");
+    assert_eq!(plan.rule_name, "Spotify Cache");
+    println!("Spotify plan total bytes: {}, candidates: {}", plan.total_bytes, plan.candidates.len());
+}
+
 

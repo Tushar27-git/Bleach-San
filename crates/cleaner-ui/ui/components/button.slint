@@ -7,6 +7,7 @@ export component MinimalButton {
     in property <bool> enabled: true;
     in property <length> custom-width: 100px;
     in property <length> custom-height: 32px;
+    in property <bool> requires-admin: false;
     callback clicked();
 
     min-width: root.custom-width;
@@ -27,6 +28,17 @@ export component MinimalButton {
             alignment: center;
             padding-left: 12px;
             padding-right: 12px;
+            spacing: 8px;
+
+            if root.requires-admin : VerticalLayout {
+                alignment: center;
+                Rectangle {
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 4px;
+                    background: #f59e0b;
+                }
+            }
 
             Text {
                 text: root.text;

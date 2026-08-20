@@ -252,24 +252,22 @@ impl ScanWorker {
                     RuleAction::EmptyRecycleBin => scan_directory_bounded(&validated_path, None, &effective_exclude, cancel_flag, 50),
                 };
 
-                if stats.total_bytes > 0 || stats.file_count > 0 {
-                    total_bytes += stats.total_bytes;
-                    total_files += stats.file_count;
+                total_bytes += stats.total_bytes;
+                total_files += stats.file_count;
 
-                    candidates.push(TargetCandidate {
-                        path: validated_path.clone(),
-                        display_path: validated_path.to_string_lossy().to_string(),
-                        size_bytes: stats.total_bytes,
-                        file_count: stats.file_count,
-                        is_dir: validated_path.is_dir(),
-                        safety,
-                        is_locked: false,
-                        is_selected: !is_blocked_by_process && safety == SafetyLevel::Safe,
-                        action: target.action,
-                        pattern: target.pattern.clone(),
-                        exclude: effective_exclude,
-                    });
-                }
+                candidates.push(TargetCandidate {
+                    path: validated_path.clone(),
+                    display_path: validated_path.to_string_lossy().to_string(),
+                    size_bytes: stats.total_bytes,
+                    file_count: stats.file_count,
+                    is_dir: validated_path.is_dir(),
+                    safety,
+                    is_locked: false,
+                    is_selected: !is_blocked_by_process && safety == SafetyLevel::Safe,
+                    action: target.action,
+                    pattern: target.pattern.clone(),
+                    exclude: effective_exclude,
+                });
             }
         }
 

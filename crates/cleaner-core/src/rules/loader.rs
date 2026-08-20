@@ -1,7 +1,10 @@
 use crate::rules::schema::CleanerRule;
+use include_dir::{include_dir, Dir};
 use std::fs;
 use std::path::Path;
 use thiserror::Error;
+
+static RULES_DIR: Dir = include_dir!("$CARGO_MANIFEST_DIR/../../rules");
 
 #[derive(Error, Debug)]
 pub enum RuleLoadError {
@@ -50,62 +53,25 @@ pub fn load_rules_from_dir(dir: &Path) -> Result<Vec<CleanerRule>, RuleLoadError
 
 /// Returns the embedded default rules compiled into the binary.
 pub fn get_embedded_rules() -> Vec<CleanerRule> {
-    let raw_rules = [
-        ("user_temp", include_str!("../../../../rules/system/user_temp.toml")),
-        ("windows_temp", include_str!("../../../../rules/system/windows_temp.toml")),
-        ("thumbnail_cache", include_str!("../../../../rules/system/thumbnail_cache.toml")),
-        ("crash_dumps", include_str!("../../../../rules/system/crash_dumps.toml")),
-        ("recycle_bin", include_str!("../../../../rules/system/recycle_bin.toml")),
-        ("directx_shader", include_str!("../../../../rules/system/directx_shader.toml")),
-        ("wer", include_str!("../../../../rules/system/wer.toml")),
-        ("delivery_optimization", include_str!("../../../../rules/system/delivery_optimization.toml")),
-        ("spotify", include_str!("../../../../rules/applications/spotify.toml")),
-        ("discord", include_str!("../../../../rules/applications/discord.toml")),
-        ("vscode", include_str!("../../../../rules/applications/vscode.toml")),
-        ("chrome", include_str!("../../../../rules/applications/chrome.toml")),
-        ("edge", include_str!("../../../../rules/applications/edge.toml")),
-        ("steam", include_str!("../../../../rules/applications/steam.toml")),
-        ("brave", include_str!("../../../../rules/applications/brave.toml")),
-        ("whatsapp", include_str!("../../../../rules/applications/whatsapp.toml")),
-        ("npm_cache", include_str!("../../../../rules/developer/npm_cache.toml")),
-        ("pip_cache", include_str!("../../../../rules/developer/pip_cache.toml")),
-        ("cargo_cache", include_str!("../../../../rules/developer/cargo_cache.toml")),
-        ("gradle_cache", include_str!("../../../../rules/developer/gradle_cache.toml")),
-        ("slack_cache", include_str!("../../../../rules/applications/slack.toml")),
-        ("teams_cache", include_str!("../../../../rules/applications/teams.toml")),
-        ("adobe_cache", include_str!("../../../../rules/applications/adobe.toml")),
-        ("epic_games", include_str!("../../../../rules/applications/epic_games.toml")),
-        ("windows_logs", include_str!("../../../../rules/system/windows_logs.toml")),
-        ("windows_old", include_str!("../../../../rules/system/windows_old.toml")),
-        ("nvidia", include_str!("../../../../rules/applications/nvidia.toml")),
-        ("roblox", include_str!("../../../../rules/applications/roblox.toml")),
-        ("onedrive", include_str!("../../../../rules/applications/onedrive.toml")),
-        ("zoom", include_str!("../../../../rules/applications/zoom.toml")),
-        ("widgets", include_str!("../../../../rules/system/widgets.toml")),
-        ("defender_cache", include_str!("../../../../rules/system/defender_cache.toml")),
-        ("inet_cache", include_str!("../../../../rules/system/inet_cache.toml")),
-        ("recent_items", include_str!("../../../../rules/system/recent_items.toml")),
-        ("file_junk", include_str!("../../../../rules/system/file_junk.toml")),
-        ("windows_update", include_str!("../../../../rules/system/windows_update.toml")),
-        ("drive_junk", include_str!("../../../../rules/system/drive_junk.toml")),
-        ("rust_target", include_str!("../../../../rules/developer/rust_target.toml")),
-        ("node_build_cache", include_str!("../../../../rules/developer/node_build_cache.toml")),
-        ("python_cache", include_str!("../../../../rules/developer/python_cache.toml")),
-        ("visual_studio_cache", include_str!("../../../../rules/developer/visual_studio_cache.toml")),
-        ("game_shader_cache", include_str!("../../../../rules/applications/game_shader_cache.toml")),
-        ("device_drivers", include_str!("../../../../rules/system/device_drivers.toml")),
-        ("firefox", include_str!("../../../../rules/applications/firefox.toml")),
-        ("music_streaming", include_str!("../../../../rules/applications/music_streaming.toml")),
-        ("browser_extensions", include_str!("../../../../rules/applications/browser_extensions.toml")),
-        ("telemetry_logs", include_str!("../../../../rules/system/telemetry_logs.toml")),
-        ("nuget_cache", include_str!("../../../../rules/developer/nuget_cache.toml")),
-    ];
-
     let mut rules = Vec::new();
-    for (id, content) in raw_rules {
-        if let Ok(rule) = parse_rule_toml(content, id) {
-            rules.push(rule);
+    
+    fn collect_rules(dir: &Dir, rules: &mut Vec<CleanerRule>) {
+        for file in dir.files() {
+            if file.path().extension().and_then(|e| e.to_str()) == Some("toml") {
+                if let Some(content) = file.contents_utf8() {
+                    let identifier = file.path().to_string_lossy().to_string();
+                    match parse_rule_toml(content, &identifier) {
+                        Ok(rule) => rules.push(rule),
+                        Err(e) => tracing::error!("Failed to parse embedded rule '{}': {}", identifier, e),
+                    }
+                }
+            }
+        }
+        for sub_dir in dir.dirs() {
+            collect_rules(sub_dir, rules);
         }
     }
+
+    collect_rules(&RULES_DIR, &mut rules);
     rules
 }

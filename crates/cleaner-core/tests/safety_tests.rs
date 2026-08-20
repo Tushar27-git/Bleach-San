@@ -98,3 +98,15 @@ fn test_cleanup_executor_aborts_active_driver_paths() {
     assert!(!res.errors.is_empty(), "Executor must record safety violation error");
     assert!(res.errors[0].contains("Critical Safety Violation"));
 }
+
+#[test]
+fn test_security_credentials_and_git_protection() {
+    use cleaner_core::safety::blocklist::is_forbidden_from_cleanup;
+    
+    assert!(is_forbidden_from_cleanup(Path::new("C:\\Users\\test\\.ssh\\id_rsa")));
+    assert!(is_forbidden_from_cleanup(Path::new("C:\\Users\\test\\.gnupg\\pubring.kbx")));
+    assert!(is_forbidden_from_cleanup(Path::new("C:\\Users\\test\\.aws\\credentials")));
+    assert!(is_forbidden_from_cleanup(Path::new("C:\\Users\\test\\.kube\\config")));
+    assert!(is_forbidden_from_cleanup(Path::new("D:\\Projects\\BleachSan\\.git\\HEAD")));
+    assert!(is_forbidden_from_cleanup(Path::new("C:\\System Volume Information")));
+}

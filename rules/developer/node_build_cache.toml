@@ -7,10 +7,31 @@ safety = "Safe"
 [[targets]]
 action = "DeleteContents"
 [targets.discovery]
-type = "deep-search"
-base_paths = ["C:\\", "%USERPROFILE%"]
-target_names = [".cache", ".turbo", ".parcel-cache", ".next", ".svelte-kit", ".nuxt", ".astro", ".eslintcache"]
-max_depth = 5
+type = "glob"
+pattern = "D:\\*\\.next"
+
+[[targets]]
+action = "DeleteContents"
+[targets.discovery]
+type = "glob"
+pattern = "D:\\*\\*\\.next"
+
+[[targets]]
+action = "DeleteContents"
+[targets.discovery]
+type = "glob"
+pattern = "C:\\Users\\tusha\\Desktop\\*\\*\\.next"
+
+[[targets]]
+action = "DeleteContents"
+[targets.discovery]
+type = "glob"
+pattern = "C:\\Users\\tusha\\Downloads\\*\\*\\.next"
+
+[[targets]]
+path = "C:\\Users\\tusha\\.cache"
+action = "DeleteContents"
 
 [requirements]
 requires_admin = false
+process_closed = "node.exe"

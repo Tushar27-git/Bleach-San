@@ -121,7 +121,6 @@ impl ProcessGuard {
                 ],
                 "spotify.exe" => vec![
                     "spotify.exe",
-                    "spotifylauncher.exe",
                 ],
                 "steam.exe" => vec![
                     "steam.exe",

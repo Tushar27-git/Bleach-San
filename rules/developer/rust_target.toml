@@ -1,16 +1,12 @@
 id = "rust_target"
 name = "Rust Target Build Cache"
 category = "developer"
-description = "Cached compiler artifacts, incremental builds, and dependencies in Rust target directories."
+description = "Compiled Rust binaries, objects, and dependencies in target/ folders."
 safety = "Safe"
 
 [[targets]]
+path = "D:\\BleachSan\\target"
 action = "DeleteContents"
-[targets.discovery]
-type = "deep-search"
-base_paths = ["C:\\", "%USERPROFILE%"]
-target_names = ["target"]
-max_depth = 4
 
 [requirements]
 requires_admin = false

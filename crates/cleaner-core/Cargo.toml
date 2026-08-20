@@ -10,6 +10,7 @@ cleaner-platform-windows = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 toml = { workspace = true }
+include_dir = { workspace = true }
 rayon = { workspace = true }
 crossbeam-channel = { workspace = true }
 tracing = { workspace = true }

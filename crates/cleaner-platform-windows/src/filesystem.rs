@@ -84,67 +84,45 @@ pub fn delete_file_safely(path: &Path) -> io::Result<()> {
     }
 }
 
-/// Safely removes an empty or populated directory with granular fallback for locked children.
-pub fn delete_dir_safely(path: &Path) -> io::Result<()> {
+/// Safely removes an empty or populated directory with single-pass deletion, returning (reclaimed_bytes, files_deleted).
+pub fn delete_dir_safely_with_stats(path: &Path) -> io::Result<(u64, usize)> {
     if is_junction_or_symlink(path)? {
-        // If it's a junction/symlink directory, remove directory handle only, do not recurse into target!
-        return fs::remove_dir(path);
+        fs::remove_dir(path)?;
+        return Ok((0, 1));
     }
 
-    // Try direct removal first
-    if let Ok(()) = fs::remove_dir_all(path) {
-        return Ok(());
-    }
+    let mut total_bytes = 0;
+    let mut total_files = 0;
 
-    // Clear read-only flags recursively if needed
-    let _ = remove_readonly_flag(path);
-    if let Ok(entries) = walkdir(path) {
-        for entry in &entries {
-            let _ = remove_readonly_flag(entry);
-        }
-    }
-
-    if let Ok(()) = fs::remove_dir_all(path) {
-        return Ok(());
-    }
-
-    // Granular fallback: delete all unlocked files and subdirectories individually
-    delete_dir_contents_granular(path)?;
+    delete_dir_recursive_with_stats(path, &mut total_bytes, &mut total_files)?;
     let _ = fs::remove_dir(path);
-    Ok(())
+    Ok((total_bytes, total_files))
 }
 
-/// Recursively deletes all unlocked files and subdirectories within a folder.
-fn delete_dir_contents_granular(dir: &Path) -> io::Result<()> {
+fn delete_dir_recursive_with_stats(dir: &Path, total_bytes: &mut u64, total_files: &mut usize) -> io::Result<()> {
     if let Ok(read_dir) = fs::read_dir(dir) {
         for entry in read_dir.flatten() {
             let p = entry.path();
-            let _ = remove_readonly_flag(&p);
-            if p.is_dir() && !is_junction_or_symlink(&p).unwrap_or(false) {
-                let _ = delete_dir_contents_granular(&p);
-                let _ = fs::remove_dir(&p);
-            } else {
-                let _ = fs::remove_file(&p);
-            }
-        }
-    }
-    Ok(())
-}
-
-/// Simple non-following directory contents collector for attribute reset.
-fn walkdir(dir: &Path) -> io::Result<Vec<PathBuf>> {
-    let mut results = Vec::new();
-    if dir.is_dir() {
-        for entry in fs::read_dir(dir)? {
-            let entry = entry?;
-            let path = entry.path();
-            results.push(path.clone());
-            if path.is_dir() && !is_junction_or_symlink(&path).unwrap_or(false) {
-                if let Ok(mut sub) = walkdir(&path) {
-                    results.append(&mut sub);
+            let is_symlink = is_junction_or_symlink(&p).unwrap_or(false);
+            if let Ok(meta) = entry.metadata() {
+                if meta.is_dir() && !is_symlink {
+                    let _ = delete_dir_recursive_with_stats(&p, total_bytes, total_files);
+                    let _ = fs::remove_dir(&p);
+                } else {
+                    let size = meta.len();
+                    let _ = remove_readonly_flag(&p);
+                    if fs::remove_file(&p).is_ok() {
+                        *total_bytes += size;
+                        *total_files += 1;
+                    }
                 }
             }
         }
     }
-    Ok(results)
+    Ok(())
+}
+
+/// Safely removes an empty or populated directory with granular fallback for locked children.
+pub fn delete_dir_safely(path: &Path) -> io::Result<()> {
+    delete_dir_safely_with_stats(path).map(|_| ())
 }

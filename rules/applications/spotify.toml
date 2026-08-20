@@ -66,8 +66,9 @@ allowed_root = "%LOCALAPPDATA%\\Spotify"
 # 5. Dynamic configured custom storage path from prefs
 [[targets]]
 action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0"
 [targets.discovery]
-Strategy = "Config"
+type = "config"
 file = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalState\\Spotify\\prefs"
 format = "prefs"
 key = "storage.last-location"
@@ -75,13 +76,14 @@ fallback = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\Loca
 
 [[targets]]
 action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Spotify"
 [targets.discovery]
-Strategy = "Config"
+type = "config"
 file = "%APPDATA%\\Spotify\\prefs"
 format = "prefs"
 key = "storage.path"
 fallback = "%LOCALAPPDATA%\\Spotify\\Data"
 
 [requirements]
-process_closed = "Spotify.exe, SpotifyLauncher.exe"
+process_closed = "Spotify.exe"
 requires_admin = false

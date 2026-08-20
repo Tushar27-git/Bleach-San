@@ -52,6 +52,7 @@ export component AppWindow inherits Window {
     in property <bool> task-scheduler-enabled: false;
     in property <string> app-version: "0.1.0";
     in property <bool> is-admin: true;
+    in property <bool> is-creating-restore-point: false;
 
     // Callbacks to Rust
     callback request-scan();
@@ -60,6 +61,7 @@ export component AppWindow inherits Window {
     callback request-select-all(bool);
     callback request-storage-analysis();
     callback request-elevation();
+    callback request-create-restore-point();
     
     // Large Files callbacks
     callback request-large-scan();
@@ -240,6 +242,7 @@ export component AppWindow inherits Window {
                 is-scanning: root.is-scanning;
                 is-cleaning: root.is-cleaning;
                 is-admin: root.is-admin;
+                is-creating-restore-point: root.is-creating-restore-point;
                 progress-val: root.scan-progress;
                 status-text: root.status-message;
                 available-drives: root.available-drives;
@@ -249,6 +252,7 @@ export component AppWindow inherits Window {
                 toggle-item(id, c) => { root.request-toggle-item(id, c); }
                 select-all(c) => { root.request-select-all(c); }
                 request-elevation => { root.request-elevation(); }
+                request-create-restore-point => { root.request-create-restore-point(); }
             }
 
             if root.active-tab == 2 : StoragePage {

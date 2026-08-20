@@ -38,20 +38,26 @@ pub fn get_protected_paths() -> Vec<PathBuf> {
         protected.push(up.join("Pictures"));
         protected.push(up.join("Music"));
         protected.push(up.join("Videos"));
+        protected.push(up.join("Downloads"));
         protected.push(up.join("Saved Games"));
         protected.push(up.join("Contacts"));
         protected.push(up.join("Links"));
         protected.push(up.join("Favorites"));
+        protected.push(up.join(".ssh"));
+        protected.push(up.join(".gnupg"));
+        protected.push(up.join(".aws"));
+        protected.push(up.join(".azure"));
+        protected.push(up.join(".kube"));
     }
 
     protected
 }
 
-/// Checks if a path is inside any forbidden system kernel or active driver repository.
+/// Checks if a path is inside any forbidden system kernel, active driver repository, or security credential directory.
 pub fn is_forbidden_from_cleanup(path: &Path) -> bool {
     let path_lower = path.to_string_lossy().to_lowercase();
     
-    // Strict blocklist for active Windows drivers & core registry
+    // Strict blocklist for active Windows drivers, core registry, system volume, security keys, and git repositories
     if path_lower.contains("system32\\drivers")
         || path_lower.contains("driverstore\\filerepository")
         || path_lower.contains("system32\\config")
@@ -59,6 +65,16 @@ pub fn is_forbidden_from_cleanup(path: &Path) -> bool {
         || path_lower.contains("system32\\winevt\\logs")
         || path_lower.contains("winsxs")
         || path_lower.contains("system volume information")
+        || path_lower.ends_with("\\.git")
+        || path_lower.contains("\\.git\\")
+        || path_lower.ends_with("\\.ssh")
+        || path_lower.contains("\\.ssh\\")
+        || path_lower.ends_with("\\.gnupg")
+        || path_lower.contains("\\.gnupg\\")
+        || path_lower.ends_with("\\.aws")
+        || path_lower.contains("\\.aws\\")
+        || path_lower.ends_with("\\.kube")
+        || path_lower.contains("\\.kube\\")
     {
         return true;
     }

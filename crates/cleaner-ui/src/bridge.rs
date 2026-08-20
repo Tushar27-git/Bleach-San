@@ -51,6 +51,34 @@ pub fn setup_ui_bridge(window: &AppWindow) {
         let _ = cleaner_platform_windows::elevation::relaunch_as_admin();
     });
 
+    // Disaster Recovery: System Restore Point Creation
+    let handle_restore = window.as_weak();
+    window.on_request_create_restore_point(move || {
+        if let Some(h) = handle_restore.upgrade() {
+            h.set_is_creating_restore_point(true);
+            h.set_status_message("Creating Windows System Restore Point...".into());
+        }
+
+        let handle_worker = handle_restore.clone();
+        thread::spawn(move || {
+            let result = cleaner_platform_windows::create_restore_point("BleachSan Pre-Clean Checkpoint");
+            
+            let _ = slint::invoke_from_event_loop(move || {
+                if let Some(h) = handle_worker.upgrade() {
+                    h.set_is_creating_restore_point(false);
+                    match result {
+                        Ok(msg) => {
+                            h.set_status_message(format!("✅ {}", msg).into());
+                        }
+                        Err(err) => {
+                            h.set_status_message(format!("⚠️ {}", err).into());
+                        }
+                    }
+                }
+            });
+        });
+    });
+
     // Initial load of rules as empty placeholders
     let rules = get_embedded_rules();
     let initial_plans: Vec<CleanupPlan> = rules

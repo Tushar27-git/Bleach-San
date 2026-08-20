@@ -29,12 +29,14 @@ export component CleanupPage {
     in property <[string]> available-drives: ["C:\\"];
     in-out property <string> selected-drive: "C:\\";
     in property <bool> is-admin: true;
+    in property <bool> is-creating-restore-point: false;
 
     callback trigger-scan();
     callback trigger-clean();
     callback toggle-item(string, bool);
     callback select-all(bool);
     callback request-elevation();
+    callback request-create-restore-point();
 
     VerticalLayout {
         width: 100%;
@@ -73,6 +75,16 @@ export component CleanupPage {
                 }
 
                 MinimalButton {
+                    text: root.is-creating-restore-point ? "Creating Point..." : "Restore Point";
+                    requires-admin: true;
+                    primary: false;
+                    danger: false;
+                    enabled: !root.is-scanning && !root.is-cleaning && !root.is-creating-restore-point;
+                    custom-width: 130px;
+                    clicked => { root.request-create-restore-point(); }
+                }
+
+                MinimalButton {
                     text: root.is-scanning ? "Scanning..." : "Scan All";
                     primary: false;
                     enabled: !root.is-scanning && !root.is-cleaning;
@@ -108,7 +120,7 @@ export component CleanupPage {
                     spacing: 8px;
                     alignment: start;
                     Text {
-                        text: "🛡️ Standard User Mode: System driver & update caches (933 MB) require Administrator rights.";
+                        text: "🛡️ Standard User Mode: System driver & update caches require Administrator rights.";
                         font-size: Theme.font-xs;
                         color: #fcd34d;
                         vertical-alignment: center;

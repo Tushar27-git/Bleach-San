@@ -1,22 +1,26 @@
 id = "visual_studio_cache"
 name = "Visual Studio & C++ Build Cache"
 category = "developer"
-description = "Visual Studio solution browsing cache (.vs), CMake build output, and intermediate compiler files."
+description = "Visual Studio (.vs) workspace cache, CMake build caches, and vcpkg archives."
 safety = "Safe"
 
 [[targets]]
 action = "DeleteContents"
 [targets.discovery]
-type = "deep-search"
-base_paths = ["C:\\", "%USERPROFILE%"]
-target_names = [".vs", "CMakeFiles"]
-max_depth = 4
+type = "glob"
+pattern = "D:\\*\\.vs"
 
 [[targets]]
-path = "%LOCALAPPDATA%\\vcpkg\\archives"
 action = "DeleteContents"
-allowed_root = "%LOCALAPPDATA%\\vcpkg"
+[targets.discovery]
+type = "glob"
+pattern = "D:\\*\\*\\.vs"
+
+[[targets]]
+action = "DeleteContents"
+[targets.discovery]
+type = "glob"
+pattern = "C:\\Users\\tusha\\source\\repos\\*\\.vs"
 
 [requirements]
 requires_admin = false
-

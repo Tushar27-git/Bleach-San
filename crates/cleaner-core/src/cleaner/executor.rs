@@ -5,7 +5,7 @@ use crate::safety::blocklist::is_forbidden_from_cleanup as is_forbidden_path;
 use crate::safety::levels::is_forbidden_from_cleanup;
 use crate::scanner::matches_simple_pattern;
 use cleaner_platform_windows::filesystem::{
-    delete_dir_safely, delete_file_safely, is_junction_or_symlink,
+    delete_dir_safely_with_stats, delete_file_safely, is_junction_or_symlink,
 };
 use cleaner_platform_windows::recycle_bin::empty_recycle_bin;
 use std::fs;
@@ -209,11 +209,10 @@ impl CleanupExecutor {
 
                 if let Ok(meta) = entry.metadata() {
                     if meta.is_dir() && !is_symlink {
-                        let dir_size = get_directory_size(&path);
-                        match delete_dir_safely(&path) {
-                            Ok(_) => {
+                        match delete_dir_safely_with_stats(&path) {
+                            Ok((dir_size, files_count)) => {
                                 result.reclaimed_bytes += dir_size;
-                                result.files_deleted += 1;
+                                result.files_deleted += files_count;
                             }
                             Err(e) => {
                                 result.errors.push(format!("Skipped locked dir {:?}: {}", path, e));
@@ -238,17 +237,16 @@ impl CleanupExecutor {
         }
     }
 
-    /// Deletes an entire directory safely.
+    /// Deletes an entire directory safely with single-pass stats.
     fn clean_directory(path: &Path, result: &mut CleanupResult) {
         if is_active_session_artifact(path) {
             return;
         }
 
-        let size = get_directory_size(path);
-        match delete_dir_safely(path) {
-            Ok(_) => {
+        match delete_dir_safely_with_stats(path) {
+            Ok((size, count)) => {
                 result.reclaimed_bytes += size;
-                result.files_deleted += 1;
+                result.files_deleted += count;
             }
             Err(e) => {
                 result.errors.push(format!("Skipped locked dir {:?}: {}", path, e));
@@ -304,22 +302,4 @@ pub fn is_active_session_artifact(path: &Path) -> bool {
         || name.ends_with(".sock")
         || name.ends_with(".pipe")
         || name.ends_with(".lock")
-}
-
-/// Recursively calculates total size of files within a directory before deletion.
-fn get_directory_size(dir: &Path) -> u64 {
-    let mut total = 0;
-    if let Ok(read_dir) = fs::read_dir(dir) {
-        for entry in read_dir.flatten() {
-            let p = entry.path();
-            if let Ok(meta) = entry.metadata() {
-                if meta.is_dir() {
-                    total += get_directory_size(&p);
-                } else {
-                    total += meta.len();
-                }
-            }
-        }
-    }
-    total
 }
