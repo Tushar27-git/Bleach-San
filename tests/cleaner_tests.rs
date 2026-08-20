@@ -352,3 +352,71 @@ fn test_heuristic_discovery_engine_finds_caches() {
 
     let _ = fs::remove_dir_all(&temp_root);
 }
+
+#[test]
+fn test_blocked_by_process_skips_plan_execution() {
+    let temp_root = std::env::temp_dir().join("bleachsan_test_process_block");
+    let test_dir = temp_root.join("discord_cache");
+    let _ = fs::remove_dir_all(&temp_root);
+    fs::create_dir_all(&test_dir).unwrap();
+
+    let dummy_file = test_dir.join("cache.dat");
+    File::create(&dummy_file).unwrap().write_all(b"Discord active cache data").unwrap();
+
+    let candidate = TargetCandidate {
+        path: test_dir.clone(),
+        display_path: test_dir.to_string_lossy().to_string(),
+        size_bytes: 25,
+        file_count: 1,
+        is_dir: true,
+        safety: SafetyLevel::Safe,
+        is_locked: false,
+        is_selected: true,
+        action: RuleAction::DeleteContents,
+        pattern: None,
+        exclude: Vec::new(),
+    };
+
+    let plan = CleanupPlan {
+        rule_id: "discord".to_string(),
+        rule_name: "Discord Cache".to_string(),
+        category: "applications".to_string(),
+        description: "Discord cache".to_string(),
+        candidates: vec![candidate],
+        total_bytes: 25,
+        total_files: 1,
+        safety: SafetyLevel::Safe,
+        is_selected: false,
+        is_blocked_by_process: true,
+        blocked_process_name: Some("Discord.exe".to_string()),
+        requires_admin: false,
+        warnings: vec!["Application is currently running (Discord.exe).".to_string()],
+    };
+
+    let result = CleanupExecutor::execute_plan(&plan);
+
+    assert_eq!(result.files_deleted, 0);
+    assert_eq!(result.reclaimed_bytes, 0);
+    assert!(result.errors.iter().any(|e| e.contains("Execution skipped: Required application")));
+    assert!(dummy_file.exists(), "Dummy file should NOT be deleted if process is running");
+
+    let _ = fs::remove_dir_all(&temp_root);
+}
+
+#[test]
+fn test_active_session_artifact_protection() {
+    use cleaner_core::cleaner::is_active_session_artifact;
+    use std::path::Path;
+
+    assert!(is_active_session_artifact(Path::new("C:\\Users\\test\\AppData\\Local\\Temp\\scoped_dir1234_5678")));
+    assert!(is_active_session_artifact(Path::new("C:\\Users\\test\\AppData\\Local\\Temp\\crashpad_handler.pipe")));
+    assert!(is_active_session_artifact(Path::new("C:\\Users\\test\\AppData\\Local\\Temp\\SingletonLock")));
+    assert!(is_active_session_artifact(Path::new("C:\\Users\\test\\AppData\\Local\\Temp\\SingletonSocket")));
+    assert!(is_active_session_artifact(Path::new("C:\\Users\\test\\AppData\\Local\\Temp\\etilqs_abc123")));
+    assert!(is_active_session_artifact(Path::new("C:\\Users\\test\\AppData\\Local\\Temp\\ipc.sock")));
+    assert!(is_active_session_artifact(Path::new("C:\\Users\\test\\AppData\\Local\\Temp\\app.lock")));
+
+    assert!(!is_active_session_artifact(Path::new("C:\\Users\\test\\AppData\\Local\\Temp\\old_installer.log")));
+    assert!(!is_active_session_artifact(Path::new("C:\\Users\\test\\AppData\\Local\\Temp\\update_cache.dat")));
+}
+

@@ -1,4 +1,5 @@
 use crate::models::{CleanupPlan, CleanupResult};
+use crate::processes::ProcessGuard;
 use crate::rules::schema::RuleAction;
 use crate::safety::blocklist::is_forbidden_from_cleanup as is_forbidden_path;
 use crate::safety::levels::is_forbidden_from_cleanup;
@@ -35,6 +36,32 @@ impl CleanupExecutor {
             ));
             result.duration_ms = start_time.elapsed().as_millis() as u64;
             return result;
+        }
+
+        // Runtime Process Check: If rule requires process to be closed, ensure it wasn't launched after scanning
+        if plan.is_blocked_by_process {
+            let proc_info = plan
+                .blocked_process_name
+                .as_deref()
+                .unwrap_or("Active application");
+            result.errors.push(format!(
+                "Execution skipped: Required application '{}' is currently running.",
+                proc_info
+            ));
+            result.duration_ms = start_time.elapsed().as_millis() as u64;
+            return result;
+        }
+
+        // Live check against blocked process name
+        if let Some(ref proc_name) = plan.blocked_process_name {
+            if ProcessGuard::check_blocking_process(Some(proc_name)).is_some() {
+                result.errors.push(format!(
+                    "Execution skipped: Application '{}' is currently active.",
+                    proc_name
+                ));
+                result.duration_ms = start_time.elapsed().as_millis() as u64;
+                return result;
+            }
         }
 
         for candidate in &plan.candidates {
@@ -122,7 +149,7 @@ impl CleanupExecutor {
             let is_symlink = is_junction_or_symlink(&path).unwrap_or(false);
 
             if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
-                if exclude.iter().any(|ex| ex.eq_ignore_ascii_case(name)) {
+                if exclude.iter().any(|ex| ex.eq_ignore_ascii_case(name)) || is_active_session_artifact(&path) {
                     continue;
                 }
 
@@ -139,7 +166,7 @@ impl CleanupExecutor {
                                     result.files_deleted += 1;
                                 }
                                 Err(e) => {
-                                    result.errors.push(format!("Failed to delete file {:?}: {}", path, e));
+                                    result.errors.push(format!("Skipped locked file {:?}: {}", path, e));
                                     result.files_skipped += 1;
                                 }
                             }
@@ -176,7 +203,7 @@ impl CleanupExecutor {
                     continue;
                 }
 
-                if exclude.iter().any(|ex| ex.eq_ignore_ascii_case(name)) {
+                if exclude.iter().any(|ex| ex.eq_ignore_ascii_case(name)) || is_active_session_artifact(&path) {
                     continue;
                 }
 
@@ -189,7 +216,7 @@ impl CleanupExecutor {
                                 result.files_deleted += 1;
                             }
                             Err(e) => {
-                                result.errors.push(format!("Failed to delete dir {:?}: {}", path, e));
+                                result.errors.push(format!("Skipped locked dir {:?}: {}", path, e));
                                 result.files_skipped += 1;
                             }
                         }
@@ -201,7 +228,7 @@ impl CleanupExecutor {
                                 result.files_deleted += 1;
                             }
                             Err(e) => {
-                                result.errors.push(format!("Failed to delete file {:?}: {}", path, e));
+                                result.errors.push(format!("Skipped locked file {:?}: {}", path, e));
                                 result.files_skipped += 1;
                             }
                         }
@@ -213,6 +240,10 @@ impl CleanupExecutor {
 
     /// Deletes an entire directory safely.
     fn clean_directory(path: &Path, result: &mut CleanupResult) {
+        if is_active_session_artifact(path) {
+            return;
+        }
+
         let size = get_directory_size(path);
         match delete_dir_safely(path) {
             Ok(_) => {
@@ -220,7 +251,7 @@ impl CleanupExecutor {
                 result.files_deleted += 1;
             }
             Err(e) => {
-                result.errors.push(format!("Failed to delete dir {:?}: {}", path, e));
+                result.errors.push(format!("Skipped locked dir {:?}: {}", path, e));
                 result.files_skipped += 1;
             }
         }
@@ -228,6 +259,10 @@ impl CleanupExecutor {
 
     /// Cleans a single file target safely.
     fn clean_single_file(path: &Path, result: &mut CleanupResult) {
+        if is_active_session_artifact(path) {
+            return;
+        }
+
         let size = fs::metadata(path).map(|m| m.len()).unwrap_or(0);
         match delete_file_safely(path) {
             Ok(_) => {
@@ -235,11 +270,29 @@ impl CleanupExecutor {
                 result.files_deleted += 1;
             }
             Err(e) => {
-                result.errors.push(format!("Failed to delete {:?}: {}", path, e));
+                result.errors.push(format!("Skipped locked file {:?}: {}", path, e));
                 result.files_skipped += 1;
             }
         }
     }
+}
+
+/// Determines if a file or directory is an active session lock, IPC socket, or crashpad pipe that should never be deleted.
+pub fn is_active_session_artifact(path: &Path) -> bool {
+    let name = match path.file_name().and_then(|n| n.to_str()) {
+        Some(n) => n.to_lowercase(),
+        None => return false,
+    };
+
+    name.starts_with("scoped_dir")
+        || name.starts_with("crashpad")
+        || name.starts_with("etilqs_")
+        || name.starts_with("singletonlock")
+        || name.starts_with("singletoncookie")
+        || name.starts_with("singletonsocket")
+        || name.ends_with(".sock")
+        || name.ends_with(".pipe")
+        || name.ends_with(".lock")
 }
 
 /// Recursively calculates total size of files within a directory before deletion.

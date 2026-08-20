@@ -15,5 +15,5 @@ action = "DeleteContents"
 allowed_root = "%LOCALAPPDATA%\\BraveSoftware"
 
 [requirements]
+process_closed = "brave.exe"
 requires_admin = false
-process_not_running = "brave.exe"

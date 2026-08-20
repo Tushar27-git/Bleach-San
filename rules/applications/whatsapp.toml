@@ -15,5 +15,5 @@ action = "DeleteContents"
 allowed_root = "%LOCALAPPDATA%\\Packages"
 
 [requirements]
+process_closed = "WhatsApp.exe"
 requires_admin = false
-process_not_running = "WhatsApp.exe"

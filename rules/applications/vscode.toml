@@ -31,5 +31,5 @@ action = "DeleteContents"
 allowed_root = "%APPDATA%\\Code\\logs"
 
 [requirements]
-process_closed = "Code.exe"
+process_closed = "Code.exe, antigravity.exe, cursor.exe, VSCodium.exe, windsurf.exe"
 requires_admin = false

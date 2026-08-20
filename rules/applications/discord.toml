@@ -20,5 +20,5 @@ action = "DeleteContents"
 allowed_root = "%APPDATA%\\discord\\GPUCache"
 
 [requirements]
-process_closed = "Discord.exe"
+process_closed = "Discord.exe, DiscordCanary.exe, DiscordPTB.exe, DiscordDevelopment.exe"
 requires_admin = false

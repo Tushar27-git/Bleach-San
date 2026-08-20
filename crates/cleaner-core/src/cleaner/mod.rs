@@ -1,7 +1,7 @@
 pub mod executor;
 pub mod plan;
 
-pub use executor::CleanupExecutor;
+pub use executor::{is_active_session_artifact, CleanupExecutor};
 pub use plan::{calculate_total_selected_bytes, contains_review_items, filter_actionable_plans};
 
 use crate::models::{CleanupPlan, CleanupResult};

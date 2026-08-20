@@ -1,15 +1,23 @@
 id = "windows_old"
 name = "Previous Windows Installations (Windows.old)"
-category = "System"
+category = "system"
 description = "Large leftover folders from previous Windows updates."
-safety = "REVIEW"
+safety = "Review"
 
-[targets]
-directories = [
-    "C:\\Windows.old",
-    "C:\\$Windows.~BT",
-    "C:\\$Windows.~WS"
-]
+[[targets]]
+path = "C:\\Windows.old"
+action = "DeleteDirectory"
+allowed_root = "C:\\Windows.old"
+
+[[targets]]
+path = "C:\\$Windows.~BT"
+action = "DeleteDirectory"
+allowed_root = "C:\\$Windows.~BT"
+
+[[targets]]
+path = "C:\\$Windows.~WS"
+action = "DeleteDirectory"
+allowed_root = "C:\\$Windows.~WS"
 
 [requirements]
 requires_admin = true

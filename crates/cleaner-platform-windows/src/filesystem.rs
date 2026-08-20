@@ -66,7 +66,8 @@ pub fn remove_readonly_flag(path: &Path) -> io::Result<()> {
     Ok(())
 }
 
-/// Safely removes a file, clearing read-only attributes or falling back to truncation if actively locked by loggers.
+/// Safely removes a file, clearing read-only attributes if needed.
+/// If the file is locked or in use by an active process, it returns an error rather than forcing truncation.
 pub fn delete_file_safely(path: &Path) -> io::Result<()> {
     if is_junction_or_symlink(path)? {
         // Remove symlink without following
@@ -76,19 +77,9 @@ pub fn delete_file_safely(path: &Path) -> io::Result<()> {
     match fs::remove_file(path) {
         Ok(_) => Ok(()),
         Err(e) => {
-            // 1. Try removing read-only attribute and re-attempting deletion
+            // Try removing read-only attribute and re-attempting deletion
             let _ = remove_readonly_flag(path);
-            if let Ok(()) = fs::remove_file(path) {
-                return Ok(());
-            }
-
-            // 2. Truncation Fallback: If a telemetry/logging process holds an open handle, truncate to 0 bytes to reclaim space
-            if let Ok(file) = fs::OpenOptions::new().write(true).truncate(true).open(path) {
-                drop(file);
-                return Ok(());
-            }
-
-            Err(e)
+            fs::remove_file(path).map_err(|_| e)
         }
     }
 }

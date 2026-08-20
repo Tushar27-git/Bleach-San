@@ -1,13 +1,14 @@
 id = "user_temp"
 name = "User Temp Files"
 category = "system"
-description = "Temporary files created by user applications in the local Temp folder."
+description = "Stale temporary files created by user applications in the local Temp folder."
 safety = "Safe"
 
 [[targets]]
 path = "%TEMP%"
 action = "DeleteContents"
 allowed_root = "%LOCALAPPDATA%\\Temp"
+exclude = ["scoped_dir*", "crashpad", "etilqs_*", "SingletonLock", "SingletonCookie", "SingletonSocket"]
 
 [requirements]
 requires_admin = false
