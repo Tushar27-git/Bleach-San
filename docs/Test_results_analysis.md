@@ -29,7 +29,7 @@ BleachSan executes **50 individual tests and scanners** across System, Applicati
 | **11** | **Windows Widgets Cache** | `%LOCALAPPDATA%\Packages\MicrosoftWindows.Client.WebExperience_*\LocalCache\*` | `DeleteContents` | Edge WebView2 widget stream cache |
 | **12** | **Microsoft Defender Antivirus Cache** | `%PROGRAMDATA%\Microsoft\Windows Defender\Scans\History\Store\*`, `Support\*` | `DeleteContents` | Defender scan history and support dumps |
 | **13** | **Temporary Internet Files** | `%LOCALAPPDATA%\Microsoft\Windows\INetCache\*` | `DeleteContents` | Legacy IE/WinINet system network cache |
-| **14** | **Recent Items & Jump Lists** | `%APPDATA%\Microsoft\Windows\Recent\*` (Excludes `AutomaticDestinations`) | `DeleteFilesMatching`| **Preserves pinned folders & Quick Access** |
+| **14** | **Recent Items & Jump Lists** | `%APPDATA%\Microsoft\Windows\Recent\*` | `DeleteFilesMatching`| **Engine-Level Block**: Protects `AutomaticDestinations` & `CustomDestinations` (Pinned Folders) |
 | **15** | **Drive Root Temp & Loose Junk** | `<Drive>:\Temp\*`, `<Drive>:\tmp\*`, `Thumbs.db`, `*.tmp`, `*.dmp`, `*.bak` | `DeleteContents` | Scans root temp and loose file junk |
 | **16** | **Windows Update Download Cache** | `%SYSTEMROOT%\SoftwareDistribution\Download\*`, `SLS\*`, `PostReboot*` | `DeleteContents` | Staged `.cab`/`.msu` installer chunks |
 | **17** | **Device Driver Install Packages** | `C:\NVIDIA\DisplayDriver\*`, `C:\AMD\*`, `C:\Intel\*`, `DriverStore\Temp\*` | `DeleteContents` | **Active System32 drivers 100% protected** |
@@ -49,7 +49,7 @@ BleachSan executes **50 individual tests and scanners** across System, Applicati
 | **24** | **Spotify Music Cache** | `%LOCALAPPDATA%\Spotify\Data\*`, `%LOCALAPPDATA%\Spotify\Storage\*` | `DeleteContents` | Process-guarded (`Spotify.exe`) |
 | **25** | **Steam Web & Shader Cache** | `%LOCALAPPDATA%\Steam\htmlcache\*`, `SteamLibrary\steamapps\shadercache\*` | `DeleteContents` | Process-guarded (`steam.exe`) |
 | **26** | **Epic Games Launcher Cache** | `%LOCALAPPDATA%\EpicGamesLauncher\Saved\webcache\*`, `VaultCache\*` | `DeleteContents` | Process-guarded (`EpicGamesLauncher.exe`) |
-| **27** | **WhatsApp Desktop Cache** | `%LOCALAPPDATA%\Packages\5319275A.WhatsAppDesktop_*\LocalCache\*` | `DeleteContents` | Temporary media playback buffer |
+| **27** | **WhatsApp Desktop Cache** | `%LOCALAPPDATA%\Packages\5319275A.*\TempState`, `LocalCache\EBWebView\Default\Cache\*` | `DeleteContents` | **Surgically avoids Auth Tokens / Cookies; safe logout protection** |
 | **28** | **Visual Studio Code Cache** | `%APPDATA%\Code\Cache\*`, `GPUCache\*`, `CachedData\*` | `DeleteContents` | Process-guarded (`Code.exe`) |
 | **29** | **Slack Desktop Cache** | `%APPDATA%\Slack\Cache\*`, `%APPDATA%\Slack\Service Worker\CacheStorage\*` | `DeleteContents` | Process-guarded (`slack.exe`) |
 | **30** | **Microsoft Teams Cache** | `%APPDATA%\Microsoft\Teams\Cache\*`, `%APPDATA%\Microsoft\Teams\tmp\*` | `DeleteContents` | Process-guarded (`Teams.exe`) |
@@ -69,7 +69,7 @@ BleachSan executes **50 individual tests and scanners** across System, Applicati
 | # | Test Name | Target Paths Inspected | Action Performed | Safety Guard |
 | :---: | :--- | :--- | :--- | :--- |
 | **39** | **Rust Build Target** | `<Repo>\target\debug\*`, `<Repo>\target\release\incremental\*` | `DeleteContents` | Confined to parent containing `Cargo.toml` |
-| **40** | **Node.js & Web Build Cache** | `node_modules\.cache\*`, `.next\cache\*`, `.turbo\*`, `.parcel-cache\*` | `DeleteContents` | Web compiler and bundler caches |
+| **40** | **Node.js & Web Build Cache** | `node_modules\.cache\*`, `.next\cache\*`, `.turbo\*`, `.parcel-cache\*` | `DeleteContents` | **Process Guarded**: Skips if `node.exe` is running (Protects Dev Servers) |
 | **41** | **Python Bytecode & Tests** | `__pycache__\*`, `.pytest_cache\*`, `.mypy_cache\*`, `.ruff_cache\*` | `DeleteContents` | Compiled `.pyc` and pytest metadata |
 | **42** | **Visual Studio Workspace Cache**| `<Solution>\.vs\*`, `CMakeFiles\*`, `out\build\*` | `DeleteContents` | IntelliSense browsing database |
 | **43** | **Cargo Package Registry Cache** | `%USERPROFILE%\.cargo\registry\cache\*`, `%USERPROFILE%\.cargo\git\db\*` | `DeleteContents` | Downloaded crates.io package archives |

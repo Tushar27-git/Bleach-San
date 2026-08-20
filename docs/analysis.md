@@ -14,7 +14,7 @@ BleachSan operates under a strict **Fail-Closed Dual-Filter Model**. Before any 
                    ┌──────────────────────────────┐
                    │  Filter 1: Global Blocklist  │
                    │ (Active drivers, System32,   │
-                   │  WinSxS, Registry config)    │
+                   │  Pinned Folders, Registry)   │
                    └──────────────┬───────────────┘
                                   │ Passed
                                   ▼
@@ -33,7 +33,13 @@ BleachSan operates under a strict **Fail-Closed Dual-Filter Model**. Before any 
                                   │ Passed
                                   ▼
                             Safe Execution
-```
+                                  │
+                                  ▼
+                   ┌──────────────────────────────┐
+                   │ System Restore Point (Opt)   │
+                   │ (Snapshot created prior to   │
+                   │   aggressive system mods)    │
+                   └──────────────────────────────┘
 
 ---
 
@@ -52,6 +58,7 @@ BleachSan operates under a strict **Fail-Closed Dual-Filter Model**. Before any 
 - **`C:\Windows\System32\DriverStore\FileRepository`**: The active driver repository Windows uses when hardware is detected. **Protected by `is_forbidden_from_cleanup`**.
 - **`C:\Windows\System32\config`**: Hardware registry hives (`SYSTEM`, `SAM`, `SOFTWARE`). **Protected by `is_forbidden_from_cleanup`**.
 - **`C:\Windows\System32\catroot`**: Digital signature catalogs for WHQL signed drivers. **Protected by `is_forbidden_from_cleanup`**.
+- **`AutomaticDestinations` / `CustomDestinations`**: Pinned Taskbar and Quick Access folders. **Hardcoded protection to prevent UI resets**.
 
 ---
 
