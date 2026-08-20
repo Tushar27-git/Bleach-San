@@ -1,0 +1,59 @@
+id = "antigravity_ide"
+name = "Antigravity IDE Cache"
+category = "applications"
+description = "Cached editor workspace data, GPU cache, extension packages, and logs for Antigravity IDE."
+safety = "Safe"
+
+[[targets]]
+path = "%APPDATA%\\Antigravity IDE\\Cache\\Cache_Data"
+action = "DeleteContents"
+allowed_root = "%APPDATA%\\Antigravity IDE"
+
+[[targets]]
+path = "%APPDATA%\\Antigravity IDE\\CachedData"
+action = "DeleteContents"
+allowed_root = "%APPDATA%\\Antigravity IDE"
+
+[[targets]]
+path = "%APPDATA%\\Antigravity IDE\\GPUCache"
+action = "DeleteContents"
+allowed_root = "%APPDATA%\\Antigravity IDE"
+
+[[targets]]
+path = "%APPDATA%\\Antigravity IDE\\CachedExtensionVSIXs"
+action = "DeleteContents"
+allowed_root = "%APPDATA%\\Antigravity IDE"
+
+[[targets]]
+path = "%APPDATA%\\Antigravity IDE\\logs"
+action = "DeleteContents"
+allowed_root = "%APPDATA%\\Antigravity IDE"
+
+[[targets]]
+path = "%APPDATA%\\Antigravity\\Cache\\Cache_Data"
+action = "DeleteContents"
+allowed_root = "%APPDATA%\\Antigravity"
+
+[[targets]]
+path = "%APPDATA%\\Antigravity\\CachedData"
+action = "DeleteContents"
+allowed_root = "%APPDATA%\\Antigravity"
+
+[[targets]]
+path = "%APPDATA%\\Antigravity\\GPUCache"
+action = "DeleteContents"
+allowed_root = "%APPDATA%\\Antigravity"
+
+[[targets]]
+path = "%APPDATA%\\Antigravity\\CachedExtensionVSIXs"
+action = "DeleteContents"
+allowed_root = "%APPDATA%\\Antigravity"
+
+[[targets]]
+path = "%APPDATA%\\Antigravity\\logs"
+action = "DeleteContents"
+allowed_root = "%APPDATA%\\Antigravity"
+
+[requirements]
+process_closed = "Antigravity IDE.exe, Antigravity.exe, antigravity-ide.exe"
+requires_admin = false

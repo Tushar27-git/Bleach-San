@@ -1,0 +1,18 @@
+id = "pnpm_cache"
+name = "PNPM Package Store & Cache"
+category = "developer"
+description = "Cached package tarballs and global content-addressable store for PNPM."
+safety = "Safe"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\pnpm\\store"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\pnpm"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\pnpm-cache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\pnpm-cache"
+
+[requirements]
+requires_admin = false

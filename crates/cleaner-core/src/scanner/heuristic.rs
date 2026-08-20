@@ -286,7 +286,7 @@ impl HeuristicDiscoveryEngine {
                 name: format!("Game Shader Cache ({})", parent_desc),
                 category: "GAMES".to_string(),
                 description: format!("Precompiled graphics shaders in {}", path_str),
-                safety: SafetyLevel::Safe,
+                safety: SafetyLevel::Review,
                 action: RuleAction::DeleteContents,
             });
         }
@@ -452,7 +452,7 @@ impl HeuristicDiscoveryEngine {
             });
         }
 
-        // 4. Web & Embedded Application Caches
+        // 4. Web & Embedded Application Caches (Review safety to prevent terminating active apps)
         if original_name.eq_ignore_ascii_case("gpucache") || original_name.eq_ignore_ascii_case("code cache") || original_name.eq_ignore_ascii_case("webcache") || original_name.eq_ignore_ascii_case("cache_data") {
             let app_desc = path.parent().and_then(|p| p.file_name()).and_then(|n| n.to_str()).unwrap_or("App");
             return Some(DiscoveredCache {
@@ -460,7 +460,7 @@ impl HeuristicDiscoveryEngine {
                 name: format!("Application Web Cache ({})", app_desc),
                 category: "APPLICATIONS".to_string(),
                 description: format!("Embedded CEF/Chromium web cache in {}", path_str),
-                safety: SafetyLevel::Safe,
+                safety: SafetyLevel::Review,
                 action: RuleAction::DeleteContents,
             });
         }

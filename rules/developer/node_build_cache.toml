@@ -9,7 +9,7 @@ action = "DeleteContents"
 [targets.discovery]
 type = "deep-search"
 base_paths = ["C:\\", "%USERPROFILE%"]
-target_names = [".cache", ".turbo", ".parcel-cache"]
+target_names = [".cache", ".turbo", ".parcel-cache", ".next", ".svelte-kit", ".nuxt", ".astro", ".eslintcache"]
 max_depth = 5
 
 [requirements]

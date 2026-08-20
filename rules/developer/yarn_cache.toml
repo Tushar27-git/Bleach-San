@@ -1,0 +1,18 @@
+id = "yarn_cache"
+name = "Yarn Package Cache"
+category = "developer"
+description = "Cached downloaded packages and tarballs for Yarn package manager."
+safety = "Safe"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Yarn\\Cache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Yarn"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Yarn\\Berry\\cache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Yarn"
+
+[requirements]
+requires_admin = false

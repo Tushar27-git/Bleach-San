@@ -2,7 +2,7 @@ id = "nvidia"
 name = "NVIDIA Cache"
 category = "applications"
 description = "NVIDIA DirectX/OpenGL shader cache, compute cache, and temporary installer files."
-safety = "Safe"
+safety = "Review"
 
 [[targets]]
 path = "%LOCALAPPDATA%\\NVIDIA\\DXCache"
@@ -20,9 +20,11 @@ action = "DeleteContents"
 allowed_root = "%APPDATA%\\NVIDIA\\ComputeCache"
 
 [[targets]]
-path = "%LOCALAPPDATA%\\NVIDIA Corporation"
+path = "%LOCALAPPDATA%\\NVIDIA Corporation\\Installer2"
 action = "DeleteContents"
-allowed_root = "%LOCALAPPDATA%\\NVIDIA Corporation"
+allowed_root = "%LOCALAPPDATA%\\NVIDIA Corporation\\Installer2"
 
 [requirements]
+process_closed = "NVIDIA GeForce Experience.exe, NVIDIA App.exe, NVCPLUI.exe, nvcontainer.exe"
 requires_admin = false
+

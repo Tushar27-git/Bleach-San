@@ -415,8 +415,37 @@ fn test_active_session_artifact_protection() {
     assert!(is_active_session_artifact(Path::new("C:\\Users\\test\\AppData\\Local\\Temp\\etilqs_abc123")));
     assert!(is_active_session_artifact(Path::new("C:\\Users\\test\\AppData\\Local\\Temp\\ipc.sock")));
     assert!(is_active_session_artifact(Path::new("C:\\Users\\test\\AppData\\Local\\Temp\\app.lock")));
+    assert!(is_active_session_artifact(Path::new("C:\\Users\\test\\AppData\\Local\\Code\\GPUCache\\data_0")));
+    assert!(is_active_session_artifact(Path::new("C:\\Users\\test\\AppData\\Local\\Code\\GPUCache\\data_1")));
+    assert!(is_active_session_artifact(Path::new("C:\\Users\\test\\AppData\\Local\\Code\\GPUCache\\index")));
+    assert!(is_active_session_artifact(Path::new("C:\\Users\\test\\AppData\\Roaming\\Antigravity IDE\\code.lock")));
+    assert!(is_active_session_artifact(Path::new("C:\\Users\\test\\AppData\\Local\\discord\\GPUCache\\gpu_metrics.bin")));
+    assert!(is_active_session_artifact(Path::new("C:\\Users\\test\\AppData\\Local\\discord\\blob_storage")));
+    assert!(is_active_session_artifact(Path::new("C:\\Users\\test\\AppData\\Local\\discord\\LOCK")));
+    assert!(is_active_session_artifact(Path::new("C:\\Users\\test\\AppData\\Local\\discord\\CURRENT")));
+    assert!(is_active_session_artifact(Path::new("C:\\Users\\test\\AppData\\Local\\discord\\MANIFEST-000001")));
 
     assert!(!is_active_session_artifact(Path::new("C:\\Users\\test\\AppData\\Local\\Temp\\old_installer.log")));
     assert!(!is_active_session_artifact(Path::new("C:\\Users\\test\\AppData\\Local\\Temp\\update_cache.dat")));
 }
+
+#[test]
+fn test_process_guard_normalization_and_aliases() {
+    use cleaner_core::processes::ProcessGuard;
+
+    // Check with dummy / empty process string
+    assert_eq!(ProcessGuard::check_blocking_process(None), None);
+    assert_eq!(ProcessGuard::check_blocking_process(Some("")), None);
+    assert_eq!(ProcessGuard::check_blocking_process(Some("   ")), None);
+
+    // If Antigravity IDE is currently running in this test environment, check that antigravity matches it
+    let res = ProcessGuard::check_blocking_process(Some("Antigravity IDE.exe"));
+    // If running on user's machine with Antigravity open, it returns Some(...)
+    if cleaner_platform_windows::process::is_process_running("Antigravity IDE.exe").unwrap_or(false) {
+        assert!(res.is_some());
+        assert!(ProcessGuard::check_blocking_process(Some("antigravity.exe")).is_some());
+        assert!(ProcessGuard::check_blocking_process(Some("Code.exe")).is_some());
+    }
+}
+
 

@@ -1,0 +1,13 @@
+id = "go_build_cache"
+name = "Go Build Cache"
+category = "developer"
+description = "Cached build artifacts and compiler packages created by the Go toolchain."
+safety = "Safe"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\go-build"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\go-build"
+
+[requirements]
+requires_admin = false

@@ -21,3 +21,8 @@ allowed_root = "%LOCALAPPDATA%\\Microsoft\\Edge"
 path = "%LOCALAPPDATA%\\BraveSoftware\\Brave-Browser\\User Data\\Default\\Service Worker\\CacheStorage"
 action = "DeleteContents"
 allowed_root = "%LOCALAPPDATA%\\BraveSoftware"
+
+[requirements]
+process_closed = "chrome.exe, msedge.exe, brave.exe, msedgewebview2.exe"
+requires_admin = false
+

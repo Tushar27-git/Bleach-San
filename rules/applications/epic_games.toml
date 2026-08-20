@@ -30,4 +30,6 @@ action = "DeleteContents"
 allowed_root = "C:\\Epic Games\\Launcher\\Portal\\Saved\\WebCache"
 
 [requirements]
+process_closed = "EpicGamesLauncher.exe, EpicWebHelper.exe"
 requires_admin = false
+

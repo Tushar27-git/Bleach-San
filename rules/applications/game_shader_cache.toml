@@ -2,7 +2,7 @@ id = "game_shader_cache"
 name = "Game Shader & Engine Cache"
 category = "applications"
 description = "Precompiled DirectX/Vulkan shaders, Unreal Engine DerivedDataCache, and Unity ShaderCache across drives."
-safety = "Safe"
+safety = "Review"
 
 [[targets]]
 action = "DeleteContents"

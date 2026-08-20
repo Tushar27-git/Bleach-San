@@ -2,7 +2,7 @@ id = "directx_shader"
 name = "DirectX Shader Cache"
 category = "system"
 description = "Compiled graphics shader caches for DirectX, NVIDIA, and AMD."
-safety = "Safe"
+safety = "Review"
 
 [[targets]]
 path = "%LOCALAPPDATA%\\D3DSCache"

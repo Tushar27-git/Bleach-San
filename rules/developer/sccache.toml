@@ -1,0 +1,13 @@
+id = "sccache"
+name = "SCCache Compiler Cache"
+category = "developer"
+description = "Shared compilation cache for C, C++, and Rust builds."
+safety = "Safe"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Mozilla\\sccache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Mozilla\\sccache"
+
+[requirements]
+requires_admin = false

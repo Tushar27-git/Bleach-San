@@ -277,7 +277,7 @@ impl CleanupExecutor {
     }
 }
 
-/// Determines if a file or directory is an active session lock, IPC socket, or crashpad pipe that should never be deleted.
+/// Determines if a file or directory is an active session lock, IPC socket, live GPU index, or crashpad pipe that should never be deleted.
 pub fn is_active_session_artifact(path: &Path) -> bool {
     let name = match path.file_name().and_then(|n| n.to_str()) {
         Some(n) => n.to_lowercase(),
@@ -290,6 +290,17 @@ pub fn is_active_session_artifact(path: &Path) -> bool {
         || name.starts_with("singletonlock")
         || name.starts_with("singletoncookie")
         || name.starts_with("singletonsocket")
+        || name.starts_with("manifest-")
+        || name == "lock"
+        || name == "current"
+        || name == "code.lock"
+        || name == "index"
+        || name == "data_0"
+        || name == "data_1"
+        || name == "data_2"
+        || name == "data_3"
+        || name == "gpu_metrics.bin"
+        || name == "blob_storage"
         || name.ends_with(".sock")
         || name.ends_with(".pipe")
         || name.ends_with(".lock")

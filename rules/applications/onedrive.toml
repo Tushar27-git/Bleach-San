@@ -15,4 +15,6 @@ action = "DeleteContents"
 allowed_root = "%LOCALAPPDATA%\\Microsoft\\OneDrive\\setup\\logs"
 
 [requirements]
+process_closed = "OneDrive.exe, FileSyncConfig.exe"
 requires_admin = false
+

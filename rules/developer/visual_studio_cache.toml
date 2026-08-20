@@ -12,5 +12,11 @@ base_paths = ["C:\\", "%USERPROFILE%"]
 target_names = [".vs", "CMakeFiles"]
 max_depth = 4
 
+[[targets]]
+path = "%LOCALAPPDATA%\\vcpkg\\archives"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\vcpkg"
+
 [requirements]
 requires_admin = false
+

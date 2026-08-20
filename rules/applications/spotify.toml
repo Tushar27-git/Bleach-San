@@ -36,5 +36,6 @@ target_names = ["Data", "Storage", "Browser"]
 max_depth = 4
 
 [requirements]
-process_closed = "Spotify.exe"
+process_closed = "Spotify.exe, SpotifyLauncher.exe"
 requires_admin = false
+

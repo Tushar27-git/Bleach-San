@@ -53,3 +53,8 @@ allowed_root = "%APPDATA%\\deezer-desktop"
 path = "%APPDATA%\\deezer-desktop\\GPUCache"
 action = "DeleteContents"
 allowed_root = "%APPDATA%\\deezer-desktop"
+
+[requirements]
+process_closed = "AppleMusic.exe, iTunes.exe, Amazon Music.exe, TIDAL.exe, Deezer.exe"
+requires_admin = false
+
