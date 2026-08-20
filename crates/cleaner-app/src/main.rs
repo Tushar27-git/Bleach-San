@@ -59,5 +59,6 @@ fn main() -> anyhow::Result<()> {
         eprintln!("Failed to launch GUI: {}", e);
     }
 
-    Ok(())
+    // Explicitly terminate all background worker threads cleanly on window close
+    std::process::exit(0);
 }

@@ -1,4 +1,17 @@
 fn main() {
+    #[cfg(target_os = "windows")]
+    {
+        use std::process::Command;
+        // Automatically terminate any running instance of bleachsan.exe to release the file lock for cargo/rustc
+        let _ = Command::new("powershell")
+            .args([
+                "-NoProfile",
+                "-Command",
+                "Get-Process -Name 'bleachsan' -ErrorAction SilentlyContinue | Stop-Process -Force",
+            ])
+            .status();
+    }
+
     if cfg!(target_os = "windows") && !cfg!(debug_assertions) {
         let mut res = winres::WindowsResource::new();
         res.set_icon("icon.ico");

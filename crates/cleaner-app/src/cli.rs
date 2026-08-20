@@ -15,24 +15,32 @@ pub fn run_cli_scan() {
     println!("Scanning {} cleaner rules...", rules.len());
     let plans = scan_all_rules(&rules, None, None, cancel);
 
-    println!("\n{:<25} {:<15} {:<10} {:<12}", "RULE", "CATEGORY", "SAFETY", "RECLAIMABLE");
-    println!("{:-<65}", "");
+    println!("\n{:<32} {:<14} {:<8} {:<12} {:<24}", "RULE", "CATEGORY", "SAFETY", "RECLAIMABLE", "STATUS");
+    println!("{:-<92}", "");
 
     let mut grand_total = 0;
     for plan in &plans {
         if plan.total_bytes > 0 {
             grand_total += plan.total_bytes;
+            let status = if plan.is_blocked_by_process {
+                format!("BLOCKED ({})", plan.blocked_process_name.as_deref().unwrap_or("Active"))
+            } else if plan.is_selected {
+                "SELECTED".to_string()
+            } else {
+                "UNSELECTED".to_string()
+            };
             println!(
-                "{:<25} {:<15} {:<10} {:<12}",
+                "{:<32} {:<14} {:<8} {:<12} {:<24}",
                 plan.rule_name,
                 plan.category,
                 plan.safety.to_string(),
-                format_bytes(plan.total_bytes)
+                format_bytes(plan.total_bytes),
+                status
             );
         }
     }
 
-    println!("{:-<65}", "");
+    println!("{:-<92}", "");
     println!("Total Reclaimable Space: {}", format_bytes(grand_total));
 }
 

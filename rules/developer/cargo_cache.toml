@@ -1,7 +1,7 @@
 id = "cargo_cache"
-name = "Cargo Package Git & Registry Cache"
+name = "Cargo Package Cache (crates.io)"
 category = "developer"
-description = "Cached downloaded crate tarballs and git checkout metadata."
+description = "Cached downloaded Rust crate tarballs (.crate files) and git checkout metadata from crates.io."
 safety = "Safe"
 
 [[targets]]
