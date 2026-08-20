@@ -1,0 +1,16 @@
+id = "game_shader_cache"
+name = "Game Shader & Engine Cache"
+category = "applications"
+description = "Precompiled DirectX/Vulkan shaders, Unreal Engine DerivedDataCache, and Unity ShaderCache across drives."
+safety = "Safe"
+
+[[targets]]
+action = "DeleteContents"
+[targets.discovery]
+type = "deep-search"
+base_paths = ["C:\\", "%LOCALAPPDATA%"]
+target_names = ["shadercache", "DerivedDataCache", "ShaderCache", "ArtifactDB"]
+max_depth = 4
+
+[requirements]
+requires_admin = false

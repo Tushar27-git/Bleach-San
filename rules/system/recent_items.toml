@@ -6,8 +6,10 @@ safety = "Safe"
 
 [[targets]]
 path = "%APPDATA%\\Microsoft\\Windows\\Recent"
-action = "DeleteContents"
+action = "DeleteFilesMatching"
+pattern = "*.lnk"
 allowed_root = "%APPDATA%\\Microsoft\\Windows\\Recent"
+exclude = ["AutomaticDestinations", "CustomDestinations"]
 
 [requirements]
 requires_admin = false

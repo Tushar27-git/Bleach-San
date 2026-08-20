@@ -1,12 +1,18 @@
 use crate::models::SafetyLevel;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum RuleAction {
     DeleteContents,
     DeleteDirectory,
     DeleteFilesMatching,
     EmptyRecycleBin,
+}
+
+impl Default for RuleAction {
+    fn default() -> Self {
+        RuleAction::DeleteContents
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -39,6 +45,8 @@ pub struct RuleTarget {
     pub pattern: Option<String>,
     pub allowed_root: Option<String>,
     pub discovery: Option<DiscoveryStrategy>,
+    #[serde(default)]
+    pub exclude: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

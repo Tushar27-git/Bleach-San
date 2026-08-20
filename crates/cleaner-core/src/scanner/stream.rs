@@ -15,6 +15,7 @@ pub struct ScanStats {
 pub fn scan_directory_bounded(
     dir: &Path,
     pattern: Option<&str>,
+    exclude: &[String],
     cancel_flag: &Arc<AtomicBool>,
     max_items_to_record: usize,
 ) -> ScanStats {
@@ -38,15 +39,24 @@ pub fn scan_directory_bounded(
         return stats;
     }
 
+    let exclude_owned: Vec<String> = exclude.to_vec();
+
     for entry in WalkDir::new(dir)
         .skip_hidden(false)
         .follow_links(false)
         .parallelism(jwalk::Parallelism::RayonNewPool(1))
-        .process_read_dir(|_, _, _, children| {
+        .process_read_dir(move |_, _, _, children| {
             for dir_entry_result in children.iter_mut() {
                 if let Ok(dir_entry) = dir_entry_result {
-                    if is_junction_or_symlink(&dir_entry.path()).unwrap_or(false) {
+                    let entry_path = dir_entry.path();
+                    if is_junction_or_symlink(&entry_path).unwrap_or(false) {
                         dir_entry.read_children_path = None;
+                        continue;
+                    }
+                    if let Some(file_name) = entry_path.file_name().and_then(|n| n.to_str()) {
+                        if exclude_owned.iter().any(|ex| ex.eq_ignore_ascii_case(file_name)) {
+                            dir_entry.read_children_path = None;
+                        }
                     }
                 }
             }
@@ -68,13 +78,17 @@ pub fn scan_directory_bounded(
                 continue;
             }
 
+            let file_name = path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("");
+
+            if exclude.iter().any(|ex| ex.eq_ignore_ascii_case(file_name)) {
+                continue;
+            }
+
             if !dir_entry.file_type.is_dir() {
                 if let Ok(meta) = dir_entry.metadata() {
-                    let file_name = path
-                        .file_name()
-                        .and_then(|n| n.to_str())
-                        .unwrap_or("");
-
                     let matches_pattern = match pattern {
                         Some(pat) => matches_simple_pattern(file_name, pat),
                         None => true,
@@ -95,19 +109,21 @@ pub fn scan_directory_bounded(
     stats
 }
 
-/// Simple glob-style pattern matcher for rules (supports prefix*, *suffix, *contains*, or exact match).
+/// Simple glob-style pattern matcher for rules (supports wildcards like thumbcache_*.db, *.lnk, *contains*, or exact match).
 pub fn matches_simple_pattern(name: &str, pattern: &str) -> bool {
     if pattern == "*" || pattern.is_empty() {
         return true;
     }
-    if let Some(prefix) = pattern.strip_suffix('*') {
-        if let Some(core) = prefix.strip_prefix('*') {
-            return name.contains(core);
-        }
-        return name.starts_with(prefix);
+    let lower_name = name.to_lowercase();
+    let lower_pat = pattern.to_lowercase();
+
+    if let Ok(glob_pat) = glob::Pattern::new(&lower_pat) {
+        glob_pat.matches(&lower_name)
+    } else if let Some((prefix, suffix)) = lower_pat.split_once('*') {
+        lower_name.len() >= prefix.len() + suffix.len()
+            && lower_name.starts_with(prefix)
+            && lower_name.ends_with(suffix)
+    } else {
+        lower_name == lower_pat
     }
-    if let Some(suffix) = pattern.strip_prefix('*') {
-        return name.ends_with(suffix);
-    }
-    name.eq_ignore_ascii_case(pattern)
 }

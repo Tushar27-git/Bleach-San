@@ -158,7 +158,24 @@ impl StorageAnalyzer {
     pub fn analyze_large_junk_files(cancel_flag: &Arc<AtomicBool>, drive_str: &str) -> Vec<StorageItem> {
         let mut target_dirs = Vec::new();
         
-        if drive_str.starts_with("C:") {
+        if drive_str.eq_ignore_ascii_case("All Drives") {
+            let drives = crate::scanner::get_system_drives();
+            for drv in drives {
+                if drv.starts_with("C:") {
+                    if let Ok(home) = std::env::var("USERPROFILE") {
+                        let home_path = Path::new(&home);
+                        target_dirs.push(home_path.join("Downloads"));
+                        target_dirs.push(home_path.join("Documents"));
+                        target_dirs.push(home_path.join("Desktop"));
+                    }
+                    if let Ok(temp) = std::env::var("TEMP") {
+                        target_dirs.push(PathBuf::from(temp));
+                    }
+                } else {
+                    target_dirs.push(PathBuf::from(&drv));
+                }
+            }
+        } else if drive_str.starts_with("C:") {
             if let Ok(home) = std::env::var("USERPROFILE") {
                 let home_path = Path::new(&home);
                 target_dirs.push(home_path.join("Downloads"));

@@ -26,6 +26,8 @@ impl std::fmt::Display for SafetyLevel {
     }
 }
 
+use crate::rules::schema::RuleAction;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TargetCandidate {
     pub path: PathBuf,
@@ -36,6 +38,12 @@ pub struct TargetCandidate {
     pub safety: SafetyLevel,
     pub is_locked: bool,
     pub is_selected: bool,
+    #[serde(default)]
+    pub action: RuleAction,
+    #[serde(default)]
+    pub pattern: Option<String>,
+    #[serde(default)]
+    pub exclude: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

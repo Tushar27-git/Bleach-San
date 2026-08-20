@@ -1,5 +1,7 @@
 use crate::models::{CleanupPlan, CleanupResult};
+use crate::rules::schema::RuleAction;
 use crate::safety::levels::is_forbidden_from_cleanup;
+use crate::scanner::matches_simple_pattern;
 use cleaner_platform_windows::filesystem::{
     delete_dir_safely, delete_file_safely, is_junction_or_symlink,
 };
@@ -40,8 +42,15 @@ impl CleanupExecutor {
             }
 
             // Special handling: Recycle Bin
-            if candidate.path == Path::new("SPECIAL:RECYCLE_BIN") {
-                match empty_recycle_bin(None) {
+            let path_str = candidate.path.to_string_lossy();
+            if candidate.action == RuleAction::EmptyRecycleBin
+                || path_str.starts_with("SPECIAL:RECYCLE_BIN")
+            {
+                let target_drive = path_str
+                    .strip_prefix("SPECIAL:RECYCLE_BIN:")
+                    .filter(|d| *d != "ALL" && !d.is_empty());
+
+                match empty_recycle_bin(target_drive) {
                     Ok(_) => {
                         result.reclaimed_bytes += candidate.size_bytes;
                         result.files_deleted += candidate.file_count;
@@ -59,8 +68,19 @@ impl CleanupExecutor {
             }
 
             if candidate.is_dir {
-                // Delete contents of directory
-                Self::clean_directory_contents(&candidate.path, &mut result);
+                match candidate.action {
+                    RuleAction::DeleteFilesMatching => {
+                        let pat = candidate.pattern.as_deref().unwrap_or("*");
+                        Self::clean_matching_files(&candidate.path, pat, &candidate.exclude, &mut result);
+                    }
+                    RuleAction::DeleteContents => {
+                        Self::clean_directory_contents(&candidate.path, &candidate.exclude, &mut result);
+                    }
+                    RuleAction::DeleteDirectory => {
+                        Self::clean_directory(&candidate.path, &mut result);
+                    }
+                    RuleAction::EmptyRecycleBin => {}
+                }
             } else {
                 // Single file deletion
                 Self::clean_single_file(&candidate.path, &mut result);
@@ -71,8 +91,56 @@ impl CleanupExecutor {
         result
     }
 
+    /// Recursively cleans files inside a folder matching a pattern, while leaving directories and non-matching files untouched.
+    fn clean_matching_files(dir: &Path, pattern: &str, exclude: &[String], result: &mut CleanupResult) {
+        if is_junction_or_symlink(dir).unwrap_or(false) {
+            return;
+        }
+
+        let read_dir = match fs::read_dir(dir) {
+            Ok(r) => r,
+            Err(e) => {
+                result.errors.push(format!("Inaccessible dir {:?}: {}", dir, e));
+                result.files_skipped += 1;
+                return;
+            }
+        };
+
+        for entry in read_dir.flatten() {
+            let path = entry.path();
+            let is_symlink = is_junction_or_symlink(&path).unwrap_or(false);
+
+            if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
+                if exclude.iter().any(|ex| ex.eq_ignore_ascii_case(name)) {
+                    continue;
+                }
+
+                if let Ok(meta) = entry.metadata() {
+                    let size = meta.len();
+                    if meta.is_dir() && !is_symlink {
+                        // Recursively search subdirectories for matching files, but NEVER delete subdirectories
+                        Self::clean_matching_files(&path, pattern, exclude, result);
+                    } else if !meta.is_dir() {
+                        if matches_simple_pattern(name, pattern) {
+                            match delete_file_safely(&path) {
+                                Ok(_) => {
+                                    result.reclaimed_bytes += size;
+                                    result.files_deleted += 1;
+                                }
+                                Err(e) => {
+                                    result.errors.push(format!("Failed to delete file {:?}: {}", path, e));
+                                    result.files_skipped += 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     /// Recursively cleans contents inside a folder without deleting the root folder itself.
-    fn clean_directory_contents(dir: &Path, result: &mut CleanupResult) {
+    fn clean_directory_contents(dir: &Path, exclude: &[String], result: &mut CleanupResult) {
         if is_junction_or_symlink(dir).unwrap_or(false) {
             // Do not traverse into junction mounts
             return;
@@ -91,31 +159,57 @@ impl CleanupExecutor {
             let path = entry.path();
             let is_symlink = is_junction_or_symlink(&path).unwrap_or(false);
 
-            if let Ok(meta) = entry.metadata() {
-                let size = meta.len();
-                if meta.is_dir() && !is_symlink {
-                    match delete_dir_safely(&path) {
-                        Ok(_) => {
-                            result.reclaimed_bytes += size;
-                            result.files_deleted += 1;
+            if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
+                // Hard protection: never delete Quick Access pinned destinations or custom destinations
+                if name.eq_ignore_ascii_case("AutomaticDestinations") || name.eq_ignore_ascii_case("CustomDestinations") {
+                    continue;
+                }
+
+                if exclude.iter().any(|ex| ex.eq_ignore_ascii_case(name)) {
+                    continue;
+                }
+
+                if let Ok(meta) = entry.metadata() {
+                    let size = meta.len();
+                    if meta.is_dir() && !is_symlink {
+                        match delete_dir_safely(&path) {
+                            Ok(_) => {
+                                result.reclaimed_bytes += size;
+                                result.files_deleted += 1;
+                            }
+                            Err(e) => {
+                                result.errors.push(format!("Failed to delete dir {:?}: {}", path, e));
+                                result.files_skipped += 1;
+                            }
                         }
-                        Err(e) => {
-                            result.errors.push(format!("Failed to delete dir {:?}: {}", path, e));
-                            result.files_skipped += 1;
-                        }
-                    }
-                } else {
-                    match delete_file_safely(&path) {
-                        Ok(_) => {
-                            result.reclaimed_bytes += size;
-                            result.files_deleted += 1;
-                        }
-                        Err(e) => {
-                            result.errors.push(format!("Failed to delete file {:?}: {}", path, e));
-                            result.files_skipped += 1;
+                    } else {
+                        match delete_file_safely(&path) {
+                            Ok(_) => {
+                                result.reclaimed_bytes += size;
+                                result.files_deleted += 1;
+                            }
+                            Err(e) => {
+                                result.errors.push(format!("Failed to delete file {:?}: {}", path, e));
+                                result.files_skipped += 1;
+                            }
                         }
                     }
                 }
+            }
+        }
+    }
+
+    /// Deletes an entire directory safely.
+    fn clean_directory(path: &Path, result: &mut CleanupResult) {
+        let size = fs::metadata(path).map(|m| m.len()).unwrap_or(0);
+        match delete_dir_safely(path) {
+            Ok(_) => {
+                result.reclaimed_bytes += size;
+                result.files_deleted += 1;
+            }
+            Err(e) => {
+                result.errors.push(format!("Failed to delete dir {:?}: {}", path, e));
+                result.files_skipped += 1;
             }
         }
     }

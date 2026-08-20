@@ -23,15 +23,12 @@ pub struct UIState {
 
 fn get_available_drives() -> Vec<SharedString> {
     let mut drives = Vec::new();
-    // Quick check for standard drives (C to Z)
-    for c in b'C'..=b'Z' {
-        let drive = format!("{}:\\", c as char);
-        if std::path::Path::new(&drive).exists() {
-            drives.push(SharedString::from(drive));
-        }
+    let sys_drives = cleaner_core::get_system_drives();
+    for drive in &sys_drives {
+        drives.push(SharedString::from(drive.as_str()));
     }
-    if drives.is_empty() {
-        drives.push(SharedString::from("C:\\"));
+    if sys_drives.len() > 1 {
+        drives.push(SharedString::from("All Drives"));
     }
     drives
 }
@@ -238,7 +235,7 @@ pub fn setup_ui_bridge(window: &AppWindow) {
         thread::spawn(move || {
             let cancel = Arc::new(AtomicBool::new(false));
             // Default to selected drive if we can't build a better root
-            let root = if drive_str.starts_with("C:") {
+            let root = if drive_str.eq_ignore_ascii_case("All Drives") || drive_str.starts_with("C:") {
                 env::var("LOCALAPPDATA").map(PathBuf::from).unwrap_or_else(|_| PathBuf::from("C:\\"))
             } else {
                 PathBuf::from(&drive_str)

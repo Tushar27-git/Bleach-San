@@ -9,5 +9,10 @@ path = "%SYSTEMROOT%\\Temp"
 action = "DeleteContents"
 allowed_root = "%SYSTEMROOT%\\Temp"
 
+[[targets]]
+path = "C:\\Temp"
+action = "DeleteContents"
+allowed_root = "C:\\Temp"
+
 [requirements]
 requires_admin = true

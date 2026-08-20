@@ -13,7 +13,7 @@ pub fn run_cli_scan() {
     let cancel = Arc::new(AtomicBool::new(false));
 
     println!("Scanning {} cleaner rules...", rules.len());
-    let plans = scan_all_rules(&rules, None, cancel);
+    let plans = scan_all_rules(&rules, None, None, cancel);
 
     println!("\n{:<25} {:<15} {:<10} {:<12}", "RULE", "CATEGORY", "SAFETY", "RECLAIMABLE");
     println!("{:-<65}", "");
@@ -43,7 +43,7 @@ pub fn run_cli_scheduled_clean() {
 
     // Only scan and select SAFE rules
     let safe_rules: Vec<_> = rules.into_iter().filter(|r| r.safety == SafetyLevel::Safe).collect();
-    let plans = scan_all_rules(&safe_rules, None, cancel);
+    let plans = scan_all_rules(&safe_rules, None, None, cancel);
 
     let results = cleaner_core::execute_all_selected(&plans);
     let total_reclaimed: u64 = results.iter().map(|r| r.reclaimed_bytes).sum();

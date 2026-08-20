@@ -16,6 +16,35 @@ path = "C:\\Program Files (x86)\\Steam\\appcache"
 action = "DeleteContents"
 allowed_root = "C:\\Program Files (x86)\\Steam\\appcache"
 
+# Steam Library shader cache on any drive (e.g. D:\SteamLibrary\steamapps\shadercache)
+[[targets]]
+path = "C:\\SteamLibrary\\steamapps\\shadercache"
+action = "DeleteContents"
+allowed_root = "C:\\SteamLibrary\\steamapps\\shadercache"
+
+# Steam Library downloading temp chunks
+[[targets]]
+path = "C:\\SteamLibrary\\steamapps\\downloading"
+action = "DeleteContents"
+allowed_root = "C:\\SteamLibrary\\steamapps\\downloading"
+
+# Steam Library temp folder
+[[targets]]
+path = "C:\\SteamLibrary\\steamapps\\temp"
+action = "DeleteContents"
+allowed_root = "C:\\SteamLibrary\\steamapps\\temp"
+
+# Steam standard install shadercache & downloading
+[[targets]]
+path = "C:\\Program Files (x86)\\Steam\\steamapps\\shadercache"
+action = "DeleteContents"
+allowed_root = "C:\\Program Files (x86)\\Steam\\steamapps\\shadercache"
+
+[[targets]]
+path = "C:\\Program Files (x86)\\Steam\\steamapps\\downloading"
+action = "DeleteContents"
+allowed_root = "C:\\Program Files (x86)\\Steam\\steamapps\\downloading"
+
 [requirements]
 process_closed = "steam.exe"
 requires_admin = false

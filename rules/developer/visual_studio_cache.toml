@@ -1,0 +1,16 @@
+id = "visual_studio_cache"
+name = "Visual Studio & C++ Build Cache"
+category = "developer"
+description = "Visual Studio solution browsing cache (.vs), CMake build output, and intermediate compiler files."
+safety = "Safe"
+
+[[targets]]
+action = "DeleteContents"
+[targets.discovery]
+type = "deep-search"
+base_paths = ["C:\\", "%USERPROFILE%"]
+target_names = [".vs", "CMakeFiles"]
+max_depth = 4
+
+[requirements]
+requires_admin = false

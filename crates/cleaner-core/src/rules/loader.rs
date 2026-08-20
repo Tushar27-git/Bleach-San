@@ -85,6 +85,14 @@ pub fn get_embedded_rules() -> Vec<CleanerRule> {
         ("defender_cache", include_str!("../../../../rules/system/defender_cache.toml")),
         ("inet_cache", include_str!("../../../../rules/system/inet_cache.toml")),
         ("recent_items", include_str!("../../../../rules/system/recent_items.toml")),
+        ("file_junk", include_str!("../../../../rules/system/file_junk.toml")),
+        ("windows_update", include_str!("../../../../rules/system/windows_update.toml")),
+        ("drive_junk", include_str!("../../../../rules/system/drive_junk.toml")),
+        ("rust_target", include_str!("../../../../rules/developer/rust_target.toml")),
+        ("node_build_cache", include_str!("../../../../rules/developer/node_build_cache.toml")),
+        ("python_cache", include_str!("../../../../rules/developer/python_cache.toml")),
+        ("visual_studio_cache", include_str!("../../../../rules/developer/visual_studio_cache.toml")),
+        ("game_shader_cache", include_str!("../../../../rules/applications/game_shader_cache.toml")),
     ];
 
     let mut rules = Vec::new();

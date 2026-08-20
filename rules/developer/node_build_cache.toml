@@ -1,0 +1,16 @@
+id = "node_build_cache"
+name = "Node.js & Web Build Cache"
+category = "developer"
+description = "Cached webpack, babel, vite, next.js, and turbo build artifacts across projects."
+safety = "Safe"
+
+[[targets]]
+action = "DeleteContents"
+[targets.discovery]
+type = "deep-search"
+base_paths = ["C:\\", "%USERPROFILE%"]
+target_names = [".cache", ".turbo", ".parcel-cache"]
+max_depth = 5
+
+[requirements]
+requires_admin = false

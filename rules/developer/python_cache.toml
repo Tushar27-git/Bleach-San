@@ -1,0 +1,16 @@
+id = "python_cache"
+name = "Python Bytecode & Test Cache"
+category = "developer"
+description = "Compiled Python bytecode (__pycache__), pytest caches, and mypy type caches."
+safety = "Safe"
+
+[[targets]]
+action = "DeleteContents"
+[targets.discovery]
+type = "deep-search"
+base_paths = ["C:\\", "%USERPROFILE%"]
+target_names = ["__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache"]
+max_depth = 5
+
+[requirements]
+requires_admin = false

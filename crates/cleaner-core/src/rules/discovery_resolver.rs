@@ -54,7 +54,19 @@ pub fn resolve_target_paths(target: &RuleTarget, target_drive: Option<&str>) -> 
                 }
             }
             DiscoveryStrategy::Glob { pattern } => {
-                if let Ok(resolved_pattern) = resolve_env_vars(pattern) {
+                let pattern_to_resolve = if let Some(target_drv) = target_drive {
+                    if !target_drv.eq_ignore_ascii_case("All Drives") {
+                        crate::scanner::worker::apply_drive_to_path(&PathBuf::from(pattern), target_drv)
+                            .to_string_lossy()
+                            .to_string()
+                    } else {
+                        pattern.clone()
+                    }
+                } else {
+                    pattern.clone()
+                };
+
+                if let Ok(resolved_pattern) = resolve_env_vars(&pattern_to_resolve) {
                     if let Some(pattern_str) = resolved_pattern.to_str() {
                         if let Ok(entries) = glob(pattern_str) {
                             for entry in entries {
@@ -74,7 +86,22 @@ pub fn resolve_target_paths(target: &RuleTarget, target_drive: Option<&str>) -> 
                 let limit = max_depth.unwrap_or(4); // default limit to prevent infinite scanning
 
                 for base in base_paths {
-                    if let Ok(resolved_base) = resolve_env_vars(base) {
+                    let base_to_resolve = if let Some(target_drv) = target_drive {
+                        if !target_drv.eq_ignore_ascii_case("All Drives") {
+                            crate::scanner::worker::apply_drive_to_path(&PathBuf::from(base), target_drv)
+                                .to_string_lossy()
+                                .to_string()
+                        } else {
+                            base.clone()
+                        }
+                    } else {
+                        base.clone()
+                    };
+
+                    if let Ok(resolved_base) = resolve_env_vars(&base_to_resolve) {
+                        if !resolved_base.exists() {
+                            continue;
+                        }
                         for entry in WalkDir::new(&resolved_base)
                             .max_depth(limit)
                             .skip_hidden(false)

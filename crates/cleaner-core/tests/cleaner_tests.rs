@@ -1,5 +1,6 @@
 use cleaner_core::cleaner::CleanupExecutor;
 use cleaner_core::models::{CleanupPlan, SafetyLevel, TargetCandidate};
+use cleaner_core::rules::schema::RuleAction;
 use std::fs::{self, File};
 use std::io::Write;
 
@@ -38,6 +39,9 @@ fn test_sandbox_clean_execution() {
         safety: SafetyLevel::Safe,
         is_locked: false,
         is_selected: true,
+        action: RuleAction::DeleteContents,
+        pattern: None,
+        exclude: Vec::new(),
     };
 
     let plan = CleanupPlan {
@@ -70,6 +74,225 @@ fn test_sandbox_clean_execution() {
 
     // Root directory should still exist
     assert!(test_dir.exists());
+
+    let _ = fs::remove_dir_all(&temp_root);
+}
+
+#[test]
+fn test_delete_files_matching_preserves_subdirectories_and_other_files() {
+    let temp_root = std::env::temp_dir().join("bleachsan_test_matching");
+    let test_dir = temp_root.join("explorer_mock");
+    let _ = fs::remove_dir_all(&temp_root);
+    fs::create_dir_all(&test_dir).expect("Failed to create test dir");
+
+    // Create thumbnail cache files
+    let thumb1 = test_dir.join("thumbcache_32.db");
+    let thumb2 = test_dir.join("thumbcache_256.db");
+    // Create non-matching icon and state files
+    let icon1 = test_dir.join("iconcache_32.db");
+    let state1 = test_dir.join("ExplorerStartupLog.etl");
+    // Create subfolder
+    let subfolder = test_dir.join("PinnedFoldersCache");
+    fs::create_dir_all(&subfolder).unwrap();
+    let subfile = subfolder.join("data.bin");
+
+    File::create(&thumb1).unwrap().write_all(b"thumb32data").unwrap();
+    File::create(&thumb2).unwrap().write_all(b"thumb256data").unwrap();
+    File::create(&icon1).unwrap().write_all(b"icon32data").unwrap();
+    File::create(&state1).unwrap().write_all(b"statelog").unwrap();
+    File::create(&subfile).unwrap().write_all(b"pinned").unwrap();
+
+    let thumb1_size = fs::metadata(&thumb1).unwrap().len();
+    let thumb2_size = fs::metadata(&thumb2).unwrap().len();
+
+    let candidate = TargetCandidate {
+        path: test_dir.clone(),
+        display_path: test_dir.to_string_lossy().to_string(),
+        size_bytes: thumb1_size + thumb2_size,
+        file_count: 2,
+        is_dir: true,
+        safety: SafetyLevel::Safe,
+        is_locked: false,
+        is_selected: true,
+        action: RuleAction::DeleteFilesMatching,
+        pattern: Some("thumbcache_*.db".to_string()),
+        exclude: Vec::new(),
+    };
+
+    let plan = CleanupPlan {
+        rule_id: "test_thumbnail".to_string(),
+        rule_name: "Test Thumbnail Cache".to_string(),
+        category: "test".to_string(),
+        description: "Test pattern matching deletion".to_string(),
+        candidates: vec![candidate],
+        total_bytes: thumb1_size + thumb2_size,
+        total_files: 2,
+        safety: SafetyLevel::Safe,
+        is_selected: true,
+        is_blocked_by_process: false,
+        blocked_process_name: None,
+        requires_admin: false,
+        warnings: Vec::new(),
+    };
+
+    let result = CleanupExecutor::execute_plan(&plan);
+
+    assert_eq!(result.files_deleted, 2);
+    assert_eq!(result.reclaimed_bytes, thumb1_size + thumb2_size);
+
+    // Matching files should be deleted
+    assert!(!thumb1.exists());
+    assert!(!thumb2.exists());
+
+    // Non-matching files and subfolders MUST be preserved
+    assert!(icon1.exists(), "iconcache_*.db must NOT be deleted!");
+    assert!(state1.exists(), "Explorer state must NOT be deleted!");
+    assert!(subfolder.exists(), "Subfolders must NOT be deleted!");
+    assert!(subfile.exists(), "Files inside subfolders must NOT be deleted!");
+
+    let _ = fs::remove_dir_all(&temp_root);
+}
+
+#[test]
+fn test_recent_items_safety_preserves_pinned_automatic_destinations() {
+    let temp_root = std::env::temp_dir().join("bleachsan_test_recent");
+    let recent_dir = temp_root.join("Recent");
+    let auto_dest = recent_dir.join("AutomaticDestinations");
+    let custom_dest = recent_dir.join("CustomDestinations");
+    let _ = fs::remove_dir_all(&temp_root);
+    fs::create_dir_all(&auto_dest).expect("Failed to create auto dest dir");
+    fs::create_dir_all(&custom_dest).expect("Failed to create custom dest dir");
+
+    // Loose recent shortcut
+    let lnk1 = recent_dir.join("MyDocument.docx.lnk");
+    let lnk2 = recent_dir.join("ProjectCode.lnk");
+    // Pinned quick access item
+    let pinned_qa = auto_dest.join("f0156403e5093079.automaticDestinations-ms");
+    let custom_qa = custom_dest.join("custom_app.customDestinations-ms");
+
+    File::create(&lnk1).unwrap().write_all(b"lnk1").unwrap();
+    File::create(&lnk2).unwrap().write_all(b"lnk2").unwrap();
+    File::create(&pinned_qa).unwrap().write_all(b"pinned quick access folders data").unwrap();
+    File::create(&custom_qa).unwrap().write_all(b"custom destinations data").unwrap();
+
+    let lnk1_size = fs::metadata(&lnk1).unwrap().len();
+    let lnk2_size = fs::metadata(&lnk2).unwrap().len();
+
+    let candidate = TargetCandidate {
+        path: recent_dir.clone(),
+        display_path: recent_dir.to_string_lossy().to_string(),
+        size_bytes: lnk1_size + lnk2_size,
+        file_count: 2,
+        is_dir: true,
+        safety: SafetyLevel::Safe,
+        is_locked: false,
+        is_selected: true,
+        action: RuleAction::DeleteFilesMatching,
+        pattern: Some("*.lnk".to_string()),
+        exclude: vec!["AutomaticDestinations".to_string(), "CustomDestinations".to_string()],
+    };
+
+    let plan = CleanupPlan {
+        rule_id: "recent_items".to_string(),
+        rule_name: "Recent Items".to_string(),
+        category: "system".to_string(),
+        description: "Recent files shortcuts".to_string(),
+        candidates: vec![candidate],
+        total_bytes: lnk1_size + lnk2_size,
+        total_files: 2,
+        safety: SafetyLevel::Safe,
+        is_selected: true,
+        is_blocked_by_process: false,
+        blocked_process_name: None,
+        requires_admin: false,
+        warnings: Vec::new(),
+    };
+
+    let result = CleanupExecutor::execute_plan(&plan);
+
+    assert_eq!(result.files_deleted, 2);
+    assert!(!lnk1.exists());
+    assert!(!lnk2.exists());
+
+    // CRITICAL: Pinned folders and AutomaticDestinations must still exist and be intact!
+    assert!(auto_dest.exists(), "AutomaticDestinations folder must be preserved!");
+    assert!(pinned_qa.exists(), "f0156403e5093079.automaticDestinations-ms (Pinned Folders) must be preserved!");
+    assert!(custom_dest.exists(), "CustomDestinations folder must be preserved!");
+    assert!(custom_qa.exists(), "Custom destinations files must be preserved!");
+
+    let _ = fs::remove_dir_all(&temp_root);
+}
+
+#[test]
+fn test_apply_drive_to_path() {
+    use cleaner_core::scanner::apply_drive_to_path;
+    use std::path::Path;
+
+    let p1 = Path::new(r"C:\SteamLibrary\steamapps\shadercache");
+    let p_d = apply_drive_to_path(p1, "D:\\");
+    assert_eq!(p_d.to_string_lossy(), r"D:\SteamLibrary\steamapps\shadercache");
+
+    let p_e = apply_drive_to_path(p1, "E:");
+    assert_eq!(p_e.to_string_lossy(), r"E:\SteamLibrary\steamapps\shadercache");
+
+    // All Drives should leave path untouched
+    let p_all = apply_drive_to_path(p1, "All Drives");
+    assert_eq!(p_all.to_string_lossy(), r"C:\SteamLibrary\steamapps\shadercache");
+}
+
+#[test]
+fn test_multi_drive_sandbox_clean_execution() {
+    let temp_root = std::env::temp_dir().join("bleachsan_test_multidrive");
+    let mock_drive_d = temp_root.join("drive_d");
+    let steam_shader = mock_drive_d.join("SteamLibrary").join("steamapps").join("shadercache");
+    let _ = fs::remove_dir_all(&temp_root);
+    fs::create_dir_all(&steam_shader).expect("Failed to create mock steam shader dir");
+
+    let shader1 = steam_shader.join("dx11_cache.bin");
+    let shader2 = steam_shader.join("vk_pipeline.bin");
+    File::create(&shader1).unwrap().write_all(b"DirectX 11 compiled shaders data").unwrap();
+    File::create(&shader2).unwrap().write_all(b"Vulkan precompiled pipeline cache").unwrap();
+
+    let s1_size = fs::metadata(&shader1).unwrap().len();
+    let s2_size = fs::metadata(&shader2).unwrap().len();
+
+    let candidate = TargetCandidate {
+        path: steam_shader.clone(),
+        display_path: steam_shader.to_string_lossy().to_string(),
+        size_bytes: s1_size + s2_size,
+        file_count: 2,
+        is_dir: true,
+        safety: SafetyLevel::Safe,
+        is_locked: false,
+        is_selected: true,
+        action: RuleAction::DeleteContents,
+        pattern: None,
+        exclude: Vec::new(),
+    };
+
+    let plan = CleanupPlan {
+        rule_id: "steam".to_string(),
+        rule_name: "Steam Web & Shader Cache".to_string(),
+        category: "applications".to_string(),
+        description: "Steam client embedded browser cache and shader cache".to_string(),
+        candidates: vec![candidate],
+        total_bytes: s1_size + s2_size,
+        total_files: 2,
+        safety: SafetyLevel::Safe,
+        is_selected: true,
+        is_blocked_by_process: false,
+        blocked_process_name: None,
+        requires_admin: false,
+        warnings: Vec::new(),
+    };
+
+    let result = CleanupExecutor::execute_plan(&plan);
+
+    assert_eq!(result.files_deleted, 2);
+    assert_eq!(result.reclaimed_bytes, s1_size + s2_size);
+    assert!(!shader1.exists());
+    assert!(!shader2.exists());
+    assert!(steam_shader.exists());
 
     let _ = fs::remove_dir_all(&temp_root);
 }

@@ -1,0 +1,38 @@
+id = "drive_junk"
+name = "Drive Root Temp & Backup Junk"
+category = "system"
+description = "Temporary files, logs, and backups located in drive root temp folders."
+safety = "Safe"
+
+[[targets]]
+path = "C:\\Temp"
+action = "DeleteContents"
+allowed_root = "C:\\Temp"
+
+[[targets]]
+path = "C:\\tmp"
+action = "DeleteContents"
+allowed_root = "C:\\tmp"
+
+[[targets]]
+path = "C:\\Temporary"
+action = "DeleteContents"
+allowed_root = "C:\\Temporary"
+
+[[targets]]
+action = "DeleteFilesMatching"
+pattern = "C:\\Temp\\*.tmp"
+allowed_root = "C:\\Temp"
+
+[[targets]]
+action = "DeleteFilesMatching"
+pattern = "C:\\Temp\\*.log"
+allowed_root = "C:\\Temp"
+
+[[targets]]
+action = "DeleteFilesMatching"
+pattern = "C:\\Temp\\*.bak"
+allowed_root = "C:\\Temp"
+
+[requirements]
+requires_admin = true

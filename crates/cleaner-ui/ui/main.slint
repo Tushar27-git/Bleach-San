@@ -239,6 +239,8 @@ export component AppWindow inherits Window {
                 is-cleaning: root.is-cleaning;
                 progress-val: root.scan-progress;
                 status-text: root.status-message;
+                available-drives: root.available-drives;
+                selected-drive <=> root.selected-drive;
                 trigger-scan => { root.request-scan(); }
                 trigger-clean => { root.request-clean(); }
                 toggle-item(id, c) => { root.request-toggle-item(id, c); }

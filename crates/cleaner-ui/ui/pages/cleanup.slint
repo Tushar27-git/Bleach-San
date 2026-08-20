@@ -64,7 +64,7 @@ export component CleanupPage {
                 alignment: end;
 
                 ComboBox {
-                    width: 100px;
+                    width: 120px;
                     model: root.available-drives;
                     current-value <=> root.selected-drive;
                     enabled: !root.is-scanning && !root.is-cleaning;

@@ -12,14 +12,16 @@ fn test_embedded_rules_validity() {
         assert!(!rule.targets.is_empty(), "Rule '{}' must have targets", rule.id);
 
         for target in &rule.targets {
-            let res = resolve_env_vars(&target.path);
-            assert!(
-                res.is_ok(),
-                "Target path '{}' in rule '{}' failed to resolve env vars: {:?}",
-                target.path,
-                rule.id,
-                res.err()
-            );
+            if let Some(path) = &target.path {
+                let res = resolve_env_vars(path);
+                assert!(
+                    res.is_ok(),
+                    "Target path '{}' in rule '{}' failed to resolve env vars: {:?}",
+                    path,
+                    rule.id,
+                    res.err()
+                );
+            }
         }
     }
 }

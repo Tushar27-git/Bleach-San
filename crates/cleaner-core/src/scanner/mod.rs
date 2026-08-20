@@ -2,7 +2,7 @@ pub mod stream;
 pub mod worker;
 
 pub use stream::{matches_simple_pattern, scan_directory_bounded, ScanStats};
-pub use worker::ScanWorker;
+pub use worker::{apply_drive_to_path, get_system_drives, ScanWorker};
 
 use crate::models::{CleanupPlan, ScanProgress};
 use crate::rules::schema::CleanerRule;

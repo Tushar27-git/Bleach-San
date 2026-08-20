@@ -38,11 +38,27 @@ pattern = "%SYSTEMROOT%\\Temp\\**\\*.tmp"
 
 [[targets]]
 action = "DeleteFilesMatching"
-pattern = "%SYSTEMROOT%\\Temp\\*.log"
-allowed_root = "%SYSTEMROOT%\\Temp"
+pattern = "C:\\Temp\\*.tmp"
+allowed_root = "C:\\Temp"
 [targets.discovery]
 type = "glob"
-pattern = "%SYSTEMROOT%\\Temp\\**\\*.log"
+pattern = "C:\\Temp\\**\\*.tmp"
+
+[[targets]]
+action = "DeleteFilesMatching"
+pattern = "C:\\Temp\\*.log"
+allowed_root = "C:\\Temp"
+[targets.discovery]
+type = "glob"
+pattern = "C:\\Temp\\**\\*.log"
+
+[[targets]]
+action = "DeleteFilesMatching"
+pattern = "C:\\Temp\\*.bak"
+allowed_root = "C:\\Temp"
+[targets.discovery]
+type = "glob"
+pattern = "C:\\Temp\\**\\*.bak"
 
 [requirements]
 requires_admin = true

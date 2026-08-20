@@ -1,0 +1,16 @@
+id = "rust_target"
+name = "Rust Target Build Cache"
+category = "developer"
+description = "Cached compiler artifacts, incremental builds, and dependencies in Rust target directories."
+safety = "Safe"
+
+[[targets]]
+action = "DeleteContents"
+[targets.discovery]
+type = "deep-search"
+base_paths = ["C:\\", "%USERPROFILE%"]
+target_names = ["target"]
+max_depth = 4
+
+[requirements]
+requires_admin = false
