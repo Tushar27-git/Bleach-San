@@ -98,6 +98,7 @@ pub fn get_embedded_rules() -> Vec<CleanerRule> {
         ("music_streaming", include_str!("../../../../rules/applications/music_streaming.toml")),
         ("browser_extensions", include_str!("../../../../rules/applications/browser_extensions.toml")),
         ("telemetry_logs", include_str!("../../../../rules/system/telemetry_logs.toml")),
+        ("nuget_cache", include_str!("../../../../rules/developer/nuget_cache.toml")),
     ];
 
     let mut rules = Vec::new();

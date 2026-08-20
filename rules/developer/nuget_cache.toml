@@ -1,0 +1,13 @@
+id = "nuget_cache"
+name = "NuGet Package Cache"
+category = "developer"
+description = "Cached downloaded NuGet package binaries (.nupkg) across .NET solutions."
+safety = "Safe"
+
+[[targets]]
+path = "%USERPROFILE%\\.nuget\\packages"
+action = "DeleteContents"
+allowed_root = "%USERPROFILE%\\.nuget"
+
+[requirements]
+requires_admin = false

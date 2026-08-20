@@ -55,3 +55,46 @@ fn test_active_driver_and_system32_protection() {
     let winsxs_path = Path::new("C:\\Windows\\WinSxS\\amd64_microsoft-windows-kernel_123");
     assert!(validate_target_path(winsxs_path, None).is_err());
 }
+
+#[test]
+fn test_cleanup_executor_aborts_active_driver_paths() {
+    use cleaner_core::cleaner::CleanupExecutor;
+    use cleaner_core::models::{CleanupPlan, TargetCandidate};
+    use cleaner_core::rules::schema::RuleAction;
+
+    let driver_candidate = TargetCandidate {
+        path: PathBuf::from(r"C:\Windows\System32\drivers\pci.sys"),
+        display_path: r"C:\Windows\System32\drivers\pci.sys".to_string(),
+        size_bytes: 1024,
+        file_count: 1,
+        is_dir: false,
+        safety: SafetyLevel::Safe,
+        is_locked: false,
+        is_selected: true,
+        action: RuleAction::DeleteContents,
+        pattern: None,
+        exclude: Vec::new(),
+    };
+
+    let plan = CleanupPlan {
+        rule_id: "test_evil_driver".to_string(),
+        rule_name: "Test Evil Driver Rule".to_string(),
+        category: "system".to_string(),
+        description: "Must be blocked by executor".to_string(),
+        candidates: vec![driver_candidate],
+        total_bytes: 1024,
+        total_files: 1,
+        safety: SafetyLevel::Safe,
+        is_selected: true,
+        is_blocked_by_process: false,
+        blocked_process_name: None,
+        requires_admin: true,
+        warnings: Vec::new(),
+    };
+
+    let res = CleanupExecutor::execute_plan(&plan);
+    assert_eq!(res.files_deleted, 0, "No files should be deleted!");
+    assert_eq!(res.files_skipped, 1, "Candidate must be skipped!");
+    assert!(!res.errors.is_empty(), "Executor must record safety violation error");
+    assert!(res.errors[0].contains("Critical Safety Violation"));
+}

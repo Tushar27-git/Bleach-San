@@ -1,5 +1,6 @@
 use crate::models::{CleanupPlan, CleanupResult};
 use crate::rules::schema::RuleAction;
+use crate::safety::blocklist::is_forbidden_from_cleanup as is_forbidden_path;
 use crate::safety::levels::is_forbidden_from_cleanup;
 use crate::scanner::matches_simple_pattern;
 use cleaner_platform_windows::filesystem::{
@@ -38,6 +39,16 @@ impl CleanupExecutor {
 
         for candidate in &plan.candidates {
             if !candidate.is_selected {
+                continue;
+            }
+
+            // Hardcoded Driver & Kernel Safety Shield: Never delete active drivers or core registry
+            if is_forbidden_path(&candidate.path) {
+                result.errors.push(format!(
+                    "Critical Safety Violation: Candidate path '{:?}' is a protected Windows driver or system kernel path. Skipped.",
+                    candidate.path
+                ));
+                result.files_skipped += 1;
                 continue;
             }
 

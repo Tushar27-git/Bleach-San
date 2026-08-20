@@ -1,13 +1,18 @@
 id = "delivery_optimization"
 name = "Delivery Optimization Cache"
 category = "system"
-description = "Cached Windows Update and store app files used for local network sharing."
+description = "Cached Windows Update and store app files used for peer-to-peer and background network distribution."
 safety = "Safe"
 
 [[targets]]
-path = "%WINDIR%\\SoftwareDistribution\\Download"
+path = "%SYSTEMROOT%\\SoftwareDistribution\\DeliveryOptimization\\Cache"
 action = "DeleteContents"
-allowed_root = "%WINDIR%\\SoftwareDistribution"
+allowed_root = "%SYSTEMROOT%\\SoftwareDistribution\\DeliveryOptimization"
+
+[[targets]]
+path = "%PROGRAMDATA%\\Microsoft\\Network\\Downloader"
+action = "DeleteContents"
+allowed_root = "%PROGRAMDATA%\\Microsoft\\Network"
 
 [requirements]
-requires_admin = false
+requires_admin = true
