@@ -1,0 +1,23 @@
+id = "browser_extensions"
+name = "Browser Extension & Service Worker Caches"
+category = "applications"
+description = "Cached service worker network assets for extensions in Chrome, Edge, and Brave."
+safety = "Review"
+
+# Chrome Service Worker Cache
+[[targets]]
+path = "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\Default\\Service Worker\\CacheStorage"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Google\\Chrome"
+
+# Edge Service Worker Cache
+[[targets]]
+path = "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\Default\\Service Worker\\CacheStorage"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Microsoft\\Edge"
+
+# Brave Service Worker Cache
+[[targets]]
+path = "%LOCALAPPDATA%\\BraveSoftware\\Brave-Browser\\User Data\\Default\\Service Worker\\CacheStorage"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\BraveSoftware"

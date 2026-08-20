@@ -1,0 +1,55 @@
+id = "music_streaming"
+name = "Music Streaming Caches"
+category = "applications"
+description = "Cached audio streams and album art for Apple Music, iTunes, Amazon Music, TIDAL, and Deezer."
+safety = "Safe"
+
+# Apple Music Windows Store App
+[[targets]]
+path = "%LOCALAPPDATA%\\Packages\\AppleInc.AppleMusicWin_*\\LocalState\\Cache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Packages"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Packages\\AppleInc.AppleMusicWin_*\\LocalCache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Packages"
+
+# Apple iTunes Cache
+[[targets]]
+path = "%LOCALAPPDATA%\\Apple Computer\\iTunes\\SubscriptionCache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Apple Computer\\iTunes"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Apple Computer\\iTunes\\Safari\\Cache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Apple Computer\\iTunes"
+
+# Amazon Music
+[[targets]]
+path = "%LOCALAPPDATA%\\Amazon Music\\Data\\Cache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Amazon Music"
+
+# TIDAL
+[[targets]]
+path = "%APPDATA%\\TIDAL\\Cache"
+action = "DeleteContents"
+allowed_root = "%APPDATA%\\TIDAL"
+
+[[targets]]
+path = "%APPDATA%\\TIDAL\\GPUCache"
+action = "DeleteContents"
+allowed_root = "%APPDATA%\\TIDAL"
+
+# Deezer Desktop
+[[targets]]
+path = "%APPDATA%\\deezer-desktop\\Cache"
+action = "DeleteContents"
+allowed_root = "%APPDATA%\\deezer-desktop"
+
+[[targets]]
+path = "%APPDATA%\\deezer-desktop\\GPUCache"
+action = "DeleteContents"
+allowed_root = "%APPDATA%\\deezer-desktop"

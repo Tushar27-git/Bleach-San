@@ -1,0 +1,52 @@
+id = "device_drivers"
+name = "Device Driver Install Packages"
+category = "system"
+description = "Leftover installer extractions and downloads from NVIDIA, AMD, Intel, and Windows DriverStore temp files."
+safety = "Safe"
+
+# NVIDIA installer downloads & unpacked setup files
+[[targets]]
+path = "%PROGRAMDATA%\\NVIDIA Corporation\\Downloader"
+action = "DeleteContents"
+allowed_root = "%PROGRAMDATA%\\NVIDIA Corporation\\Downloader"
+
+[[targets]]
+path = "C:\\NVIDIA\\DisplayDriver"
+action = "DeleteContents"
+allowed_root = "C:\\NVIDIA\\DisplayDriver"
+
+[[targets]]
+path = "%PROGRAMDATA%\\NVIDIA Corporation\\NetService"
+action = "DeleteContents"
+allowed_root = "%PROGRAMDATA%\\NVIDIA Corporation\\NetService"
+
+# AMD Radeon driver installer extraction cache
+[[targets]]
+path = "C:\\AMD"
+action = "DeleteContents"
+allowed_root = "C:\\AMD"
+
+[[targets]]
+path = "%PROGRAMDATA%\\AMD"
+action = "DeleteContents"
+allowed_root = "%PROGRAMDATA%\\AMD"
+
+# Intel driver package cache
+[[targets]]
+path = "C:\\Intel"
+action = "DeleteContents"
+allowed_root = "C:\\Intel"
+
+[[targets]]
+path = "%PROGRAMDATA%\\Intel\\PackageManager"
+action = "DeleteContents"
+allowed_root = "%PROGRAMDATA%\\Intel\\PackageManager"
+
+# Windows DriverStore staging temp
+[[targets]]
+path = "%SYSTEMROOT%\\System32\\DriverStore\\Temp"
+action = "DeleteContents"
+allowed_root = "%SYSTEMROOT%\\System32\\DriverStore\\Temp"
+
+[requirements]
+requires_admin = true

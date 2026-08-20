@@ -24,6 +24,12 @@ fn test_embedded_rules_validity() {
             }
         }
     }
+
+    // Verify all new advanced cleaning modules are loaded
+    let required_ids = ["device_drivers", "windows_update", "firefox", "music_streaming", "browser_extensions", "telemetry_logs"];
+    for id in &required_ids {
+        assert!(rules.iter().any(|r| r.id == *id), "Required rule '{}' was not found in embedded rules", id);
+    }
 }
 
 #[test]

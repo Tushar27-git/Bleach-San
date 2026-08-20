@@ -1,13 +1,23 @@
 id = "windows_update"
 name = "Windows Update Cache"
 category = "system"
-description = "Temporary files downloaded for Windows Updates that are safe to remove."
+description = "Temporary files downloaded for Windows Updates that are safe to remove after installation."
 safety = "Safe"
 
 [[targets]]
 path = "%SYSTEMROOT%\\SoftwareDistribution\\Download"
 action = "DeleteContents"
 allowed_root = "%SYSTEMROOT%\\SoftwareDistribution\\Download"
+
+[[targets]]
+path = "%SYSTEMROOT%\\SoftwareDistribution\\PostRebootEventCache.V2"
+action = "DeleteContents"
+allowed_root = "%SYSTEMROOT%\\SoftwareDistribution\\PostRebootEventCache.V2"
+
+[[targets]]
+path = "%SYSTEMROOT%\\SoftwareDistribution\\SLS"
+action = "DeleteContents"
+allowed_root = "%SYSTEMROOT%\\SoftwareDistribution\\SLS"
 
 [requirements]
 requires_admin = true

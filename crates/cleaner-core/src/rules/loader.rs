@@ -93,6 +93,11 @@ pub fn get_embedded_rules() -> Vec<CleanerRule> {
         ("python_cache", include_str!("../../../../rules/developer/python_cache.toml")),
         ("visual_studio_cache", include_str!("../../../../rules/developer/visual_studio_cache.toml")),
         ("game_shader_cache", include_str!("../../../../rules/applications/game_shader_cache.toml")),
+        ("device_drivers", include_str!("../../../../rules/system/device_drivers.toml")),
+        ("firefox", include_str!("../../../../rules/applications/firefox.toml")),
+        ("music_streaming", include_str!("../../../../rules/applications/music_streaming.toml")),
+        ("browser_extensions", include_str!("../../../../rules/applications/browser_extensions.toml")),
+        ("telemetry_logs", include_str!("../../../../rules/system/telemetry_logs.toml")),
     ];
 
     let mut rules = Vec::new();

@@ -1,0 +1,28 @@
+id = "firefox"
+name = "Mozilla Firefox Cache"
+category = "applications"
+description = "Web cache, startup cache, jump lists, and thumbnails for Mozilla Firefox."
+safety = "Safe"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Mozilla\\Firefox\\Profiles\\*\\cache2"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Mozilla\\Firefox"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Mozilla\\Firefox\\Profiles\\*\\startupCache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Mozilla\\Firefox"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Mozilla\\Firefox\\Profiles\\*\\thumbnails"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Mozilla\\Firefox"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Mozilla\\Firefox\\Profiles\\*\\jumpListCache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Mozilla\\Firefox"
+
+[requirements]
+process_closed = "firefox.exe"

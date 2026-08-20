@@ -1,0 +1,49 @@
+id = "telemetry_logs"
+name = "Windows Telemetry & Diagnostic Logs"
+category = "system"
+description = "Diagnostic traces, ETW logs, WER crash queues, and Component Servicing logs."
+safety = "Safe"
+
+# Windows Diagnostic Data / Connected User Experiences
+[[targets]]
+path = "%PROGRAMDATA%\\Microsoft\\Diagnosis\\ETLLogs"
+action = "DeleteContents"
+allowed_root = "%PROGRAMDATA%\\Microsoft\\Diagnosis"
+
+[[targets]]
+path = "%PROGRAMDATA%\\Microsoft\\Diagnosis\\SoftLanding"
+action = "DeleteContents"
+allowed_root = "%PROGRAMDATA%\\Microsoft\\Diagnosis"
+
+# Windows Error Reporting Queues
+[[targets]]
+path = "%PROGRAMDATA%\\Microsoft\\Windows\\WER\\ReportQueue"
+action = "DeleteContents"
+allowed_root = "%PROGRAMDATA%\\Microsoft\\Windows\\WER"
+
+[[targets]]
+path = "%PROGRAMDATA%\\Microsoft\\Windows\\WER\\Temp"
+action = "DeleteContents"
+allowed_root = "%PROGRAMDATA%\\Microsoft\\Windows\\WER"
+
+# Component Servicing and DISM logs
+[[targets]]
+path = "%SYSTEMROOT%\\Logs\\CBS"
+action = "DeleteFilesMatching"
+pattern = "*.log"
+allowed_root = "%SYSTEMROOT%\\Logs\\CBS"
+
+[[targets]]
+path = "%SYSTEMROOT%\\Logs\\DISM"
+action = "DeleteFilesMatching"
+pattern = "*.log"
+allowed_root = "%SYSTEMROOT%\\Logs\\DISM"
+
+# AutoLogger WMI Sessions
+[[targets]]
+path = "%SYSTEMROOT%\\System32\\LogFiles\\WMI\\AutoLogger"
+action = "DeleteContents"
+allowed_root = "%SYSTEMROOT%\\System32\\LogFiles\\WMI\\AutoLogger"
+
+[requirements]
+requires_admin = true
