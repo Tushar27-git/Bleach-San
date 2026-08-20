@@ -1,10 +1,78 @@
 id = "spotify"
 name = "Spotify Cache"
 category = "applications"
-description = "Cached music streaming data, browser UI cache, and offline content for the Microsoft Store version of Spotify."
+description = "Cached music streaming data, audio offline files, browser UI cache, and shader caches for Spotify."
 safety = "Safe"
 
-# Read from Win32 prefs file
+# 1. UWP / Store Spotify Audio Stream Data Cache (1GB+ audio cache)
+[[targets]]
+path = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalCache\\Spotify\\Data"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0"
+
+# 2. UWP / Store Spotify Browser & Web Cache
+[[targets]]
+path = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalCache\\Spotify\\Browser"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalCache\\Spotify\\Default\\Cache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalCache\\Spotify\\Default\\Code Cache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalCache\\Spotify\\Default\\GPUCache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0"
+
+# 3. UWP / Store Spotify Shaders & Offline Storage
+[[targets]]
+path = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalCache\\Spotify\\ShaderCache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalCache\\Spotify\\GrShaderCache"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalState\\Spotify\\Storage"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0"
+
+# 4. Standard Win32 Desktop Spotify Caches
+[[targets]]
+path = "%LOCALAPPDATA%\\Spotify\\Data"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Spotify"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Spotify\\Browser"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Spotify"
+
+[[targets]]
+path = "%LOCALAPPDATA%\\Spotify\\Storage"
+action = "DeleteContents"
+allowed_root = "%LOCALAPPDATA%\\Spotify"
+
+# 5. Dynamic configured custom storage path from prefs
+[[targets]]
+action = "DeleteContents"
+[targets.discovery]
+Strategy = "Config"
+file = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalState\\Spotify\\prefs"
+format = "prefs"
+key = "storage.last-location"
+fallback = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalState\\Spotify\\Storage"
+
 [[targets]]
 action = "DeleteContents"
 [targets.discovery]
@@ -14,28 +82,6 @@ format = "prefs"
 key = "storage.path"
 fallback = "%LOCALAPPDATA%\\Spotify\\Data"
 
-# Read from UWP prefs file
-[[targets]]
-action = "DeleteContents"
-[targets.discovery]
-Strategy = "Config"
-file = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalCache\\Spotify\\prefs"
-format = "prefs"
-key = "storage.path"
-fallback = "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0\\LocalCache\\Spotify\\Data"
-
-# We should also clean the Browser cache. Since storage.path only points to Data, we can use Glob strategy as an example,
-# or we can keep static paths for the Browser cache since it doesn't move with storage.path usually. 
-# But the user wanted dynamic discovery for the 0 bytes one (storage.path).
-[[targets]]
-action = "DeleteContents"
-[targets.discovery]
-type = "deep_search"
-base_paths = ["%LOCALAPPDATA%\\Spotify", "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_zpdnekdrzrea0"]
-target_names = ["Data", "Storage", "Browser"]
-max_depth = 4
-
 [requirements]
 process_closed = "Spotify.exe, SpotifyLauncher.exe"
 requires_admin = false
-
