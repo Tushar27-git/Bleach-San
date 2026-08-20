@@ -11,7 +11,7 @@ pub use models::{CleanupPlan, CleanupResult, SafetyLevel, ScanProgress, StorageI
 pub use processes::ProcessGuard;
 pub use rules::{get_embedded_rules, load_rule_from_file, load_rules_from_dir, parse_rule_toml, CleanerRule, RuleAction, RuleRequirements, RuleTarget};
 pub use safety::{classify_path_safety, get_protected_paths, is_actionable_automatically, is_exact_protected_path, is_forbidden_from_cleanup, requires_explicit_user_review, validate_target_path, SafetyError};
-pub use scanner::{apply_drive_to_path, get_system_drives, matches_simple_pattern, scan_all_rules, scan_directory_bounded, ScanStats, ScanWorker};
+pub use scanner::{apply_drive_to_path, get_system_drives, matches_simple_pattern, scan_all_rules, scan_directory_bounded, HeuristicDiscoveryEngine, ScanStats, ScanWorker};
 pub use storage::StorageAnalyzer;
 
 /// Formats raw bytes into a human-readable string (e.g. 1.25 GB, 450 MB, 12 KB).

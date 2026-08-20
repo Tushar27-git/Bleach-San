@@ -296,3 +296,59 @@ fn test_multi_drive_sandbox_clean_execution() {
 
     let _ = fs::remove_dir_all(&temp_root);
 }
+
+#[test]
+fn test_heuristic_discovery_engine_finds_caches() {
+    use cleaner_core::scanner::HeuristicDiscoveryEngine;
+    use std::sync::atomic::AtomicBool;
+    use std::sync::Arc;
+
+    let temp_root = std::env::temp_dir().join("bleachsan_test_heuristic");
+    let _ = fs::remove_dir_all(&temp_root);
+
+    // 1. Mock Game Shader Cache & Game Logs (depth 6)
+    let game_shader = temp_root.join("Games").join("Steam").join("steamapps").join("common").join("RPGGame").join("shadercache");
+    fs::create_dir_all(&game_shader).unwrap();
+    File::create(game_shader.join("shader.bin")).unwrap().write_all(b"shader bytes data").unwrap();
+
+    let game_logs = temp_root.join("Games").join("Steam").join("steamapps").join("common").join("RPGGame").join("Saved").join("Logs");
+    fs::create_dir_all(&game_logs).unwrap();
+    File::create(game_logs.join("gameplay.log")).unwrap().write_all(b"gameplay log lines").unwrap();
+
+    // 2. Mock DaVinci CacheClip
+    let davinci_cache = temp_root.join("VideoProjects").join("DaVinciProject").join("CacheClip");
+    fs::create_dir_all(&davinci_cache).unwrap();
+    File::create(davinci_cache.join("render1.dvcc")).unwrap().write_all(b"davinci render data bytes").unwrap();
+
+    // 3. Mock Rust target with Cargo.toml
+    let rust_proj = temp_root.join("Workspace").join("RustApp");
+    let rust_target = rust_proj.join("target");
+    fs::create_dir_all(&rust_target).unwrap();
+    File::create(rust_proj.join("Cargo.toml")).unwrap().write_all(b"[package]\nname=\"rustapp\"\n").unwrap();
+    File::create(rust_target.join("output.exe")).unwrap().write_all(b"compiled bin data").unwrap();
+
+    // 4. Mock Loose File Junk & Thumbs.db
+    let junk_folder = temp_root.join("Downloads");
+    fs::create_dir_all(&junk_folder).unwrap();
+    File::create(junk_folder.join("Thumbs.db")).unwrap().write_all(b"thumbs database cache").unwrap();
+    File::create(junk_folder.join("install_temp.tmp")).unwrap().write_all(b"temp install data").unwrap();
+
+    let cancel = Arc::new(AtomicBool::new(false));
+    let discovered = HeuristicDiscoveryEngine::discover_drive_caches(&temp_root.to_string_lossy(), &cancel);
+
+    assert!(discovered.len() >= 4, "Expected at least 4 heuristic caches to be discovered, found {}", discovered.len());
+
+    let has_shader = discovered.iter().any(|d| d.category == "GAMES" && d.rule_name.contains("Game Shader Cache"));
+    let has_logs = discovered.iter().any(|d| d.category == "GAMES" && d.rule_name.contains("Game Logs"));
+    let has_media = discovered.iter().any(|d| d.category == "MEDIA" && d.rule_name.contains("DaVinci Resolve"));
+    let has_dev = discovered.iter().any(|d| d.category == "DEVELOPER" && d.rule_name.contains("Rust Build Target"));
+    let has_junk = discovered.iter().any(|d| d.category == "SYSTEM" && d.rule_name.contains("Drive File Junk"));
+
+    assert!(has_shader, "Game shader cache was not discovered");
+    assert!(has_logs, "Game saved logs were not discovered");
+    assert!(has_media, "DaVinci render cache was not discovered");
+    assert!(has_dev, "Rust target build was not discovered");
+    assert!(has_junk, "Drive loose junk and Thumbs.db was not discovered");
+
+    let _ = fs::remove_dir_all(&temp_root);
+}

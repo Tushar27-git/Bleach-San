@@ -100,7 +100,34 @@ pub fn setup_ui_bridge(window: &AppWindow) {
 
             state_worker.lock().unwrap().plans = plans.clone();
 
-            let ui_items: Vec<_> = plans.iter().map(plan_to_ui_item).collect();
+            let mut display_plans: Vec<_> = plans.clone();
+            // On secondary drives, show active non-zero discovered items
+            if !drive_str.starts_with("C:") && !drive_str.eq_ignore_ascii_case("All Drives") {
+                let active: Vec<_> = plans.iter().filter(|p| p.total_bytes > 0 || p.total_files > 0).cloned().collect();
+                if !active.is_empty() {
+                    display_plans = active;
+                } else {
+                    display_plans = vec![CleanupPlan {
+                        rule_id: "drive_clean".to_string(),
+                        rule_name: format!("No Cache Detected ({})", drive_str.trim_end_matches('\\')),
+                        category: "STORAGE".to_string(),
+                        description: format!("Drive {} has no detected game shaders, build targets, or junk files.", drive_str),
+                        candidates: Vec::new(),
+                        total_bytes: 0,
+                        total_files: 0,
+                        safety: cleaner_core::SafetyLevel::Safe,
+                        is_selected: false,
+                        is_blocked_by_process: false,
+                        blocked_process_name: None,
+                        requires_admin: false,
+                        warnings: Vec::new(),
+                    }];
+                }
+            } else {
+                display_plans.sort_by(|a, b| b.total_bytes.cmp(&a.total_bytes));
+            }
+
+            let ui_items: Vec<_> = display_plans.iter().map(plan_to_ui_item).collect();
 
             let _ = slint::invoke_from_event_loop(move || {
                 if let Some(h) = handle_worker.upgrade() {
