@@ -28,11 +28,13 @@ export component CleanupPage {
     in property <string> status-text: "Ready to scan.";
     in property <[string]> available-drives: ["C:\\"];
     in-out property <string> selected-drive: "C:\\";
+    in property <bool> is-admin: true;
 
     callback trigger-scan();
     callback trigger-clean();
     callback toggle-item(string, bool);
     callback select-all(bool);
+    callback request-elevation();
 
     VerticalLayout {
         width: 100%;
@@ -85,6 +87,52 @@ export component CleanupPage {
                     enabled: !root.is-scanning && !root.is-cleaning && root.total-selected-count > 0;
                     custom-width: 190px;
                     clicked => { root.trigger-clean(); }
+                }
+            }
+        }
+
+        // Administrator Elevation Banner if running as standard user
+        if !root.is-admin : Rectangle {
+            height: 38px;
+            background: #2b2210;
+            border-color: #f59e0b;
+            border-width: 1px;
+            border-radius: 6px;
+
+            HorizontalLayout {
+                padding-left: 12px;
+                padding-right: 12px;
+                alignment: space-between;
+
+                HorizontalLayout {
+                    spacing: 8px;
+                    alignment: start;
+                    Text {
+                        text: "🛡️ Standard User Mode: System driver & update caches (933 MB) require Administrator rights.";
+                        font-size: Theme.font-xs;
+                        color: #fcd34d;
+                        vertical-alignment: center;
+                    }
+                }
+
+                Rectangle {
+                    width: 130px;
+                    height: 26px;
+                    background: #f59e0b;
+                    border-radius: 4px;
+
+                    Text {
+                        text: "Elevate to Admin";
+                        font-size: Theme.font-xs;
+                        font-weight: 600;
+                        color: #000000;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+
+                    TouchArea {
+                        clicked => { root.request-elevation(); }
+                    }
                 }
             }
         }

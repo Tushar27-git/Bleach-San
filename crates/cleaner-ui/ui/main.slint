@@ -51,6 +51,7 @@ export component AppWindow inherits Window {
     // Settings state
     in property <bool> task-scheduler-enabled: false;
     in property <string> app-version: "0.1.0";
+    in property <bool> is-admin: true;
 
     // Callbacks to Rust
     callback request-scan();
@@ -58,6 +59,7 @@ export component AppWindow inherits Window {
     callback request-toggle-item(string, bool);
     callback request-select-all(bool);
     callback request-storage-analysis();
+    callback request-elevation();
     
     // Large Files callbacks
     callback request-large-scan();
@@ -237,6 +239,7 @@ export component AppWindow inherits Window {
                 total-selected-count: root.total-selected-count;
                 is-scanning: root.is-scanning;
                 is-cleaning: root.is-cleaning;
+                is-admin: root.is-admin;
                 progress-val: root.scan-progress;
                 status-text: root.status-message;
                 available-drives: root.available-drives;
@@ -245,6 +248,7 @@ export component AppWindow inherits Window {
                 trigger-clean => { root.request-clean(); }
                 toggle-item(id, c) => { root.request-toggle-item(id, c); }
                 select-all(c) => { root.request-select-all(c); }
+                request-elevation => { root.request-elevation(); }
             }
 
             if root.active-tab == 2 : StoragePage {

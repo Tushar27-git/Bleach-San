@@ -40,9 +40,16 @@ pub fn setup_ui_bridge(window: &AppWindow) {
         cancel_flag: Arc::new(AtomicBool::new(false)),
     }));
 
-    // Initial check for Task Scheduler
+    // Initial check for Task Scheduler and Elevation
     let is_scheduled = is_task_registered(None);
     window.set_task_scheduler_enabled(is_scheduled);
+    
+    let is_admin = cleaner_platform_windows::elevation::is_elevated();
+    window.set_is_admin(is_admin);
+
+    window.on_request_elevation(move || {
+        let _ = cleaner_platform_windows::elevation::relaunch_as_admin();
+    });
 
     // Initial load of rules as empty placeholders
     let rules = get_embedded_rules();
