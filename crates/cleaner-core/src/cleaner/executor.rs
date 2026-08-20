@@ -181,11 +181,11 @@ impl CleanupExecutor {
                 }
 
                 if let Ok(meta) = entry.metadata() {
-                    let size = meta.len();
                     if meta.is_dir() && !is_symlink {
+                        let dir_size = get_directory_size(&path);
                         match delete_dir_safely(&path) {
                             Ok(_) => {
-                                result.reclaimed_bytes += size;
+                                result.reclaimed_bytes += dir_size;
                                 result.files_deleted += 1;
                             }
                             Err(e) => {
@@ -194,6 +194,7 @@ impl CleanupExecutor {
                             }
                         }
                     } else {
+                        let size = meta.len();
                         match delete_file_safely(&path) {
                             Ok(_) => {
                                 result.reclaimed_bytes += size;
@@ -212,7 +213,7 @@ impl CleanupExecutor {
 
     /// Deletes an entire directory safely.
     fn clean_directory(path: &Path, result: &mut CleanupResult) {
-        let size = fs::metadata(path).map(|m| m.len()).unwrap_or(0);
+        let size = get_directory_size(path);
         match delete_dir_safely(path) {
             Ok(_) => {
                 result.reclaimed_bytes += size;
@@ -239,4 +240,22 @@ impl CleanupExecutor {
             }
         }
     }
+}
+
+/// Recursively calculates total size of files within a directory before deletion.
+fn get_directory_size(dir: &Path) -> u64 {
+    let mut total = 0;
+    if let Ok(read_dir) = fs::read_dir(dir) {
+        for entry in read_dir.flatten() {
+            let p = entry.path();
+            if let Ok(meta) = entry.metadata() {
+                if meta.is_dir() {
+                    total += get_directory_size(&p);
+                } else {
+                    total += meta.len();
+                }
+            }
+        }
+    }
+    total
 }

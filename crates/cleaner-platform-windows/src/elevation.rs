@@ -31,3 +31,31 @@ pub fn is_elevated() -> bool {
         }
     }
 }
+
+use std::ffi::OsStr;
+use std::os::windows::ffi::OsStrExt;
+use windows::core::PCWSTR;
+use windows::Win32::UI::Shell::ShellExecuteW;
+use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
+
+/// Relaunches the current executable with elevated Administrator privileges via UAC prompt.
+pub fn relaunch_as_admin() -> std::io::Result<()> {
+    if let Ok(exe) = std::env::current_exe() {
+        let exe_wide: Vec<u16> = exe.as_os_str().encode_wide().chain(std::iter::once(0)).collect();
+        let verb: Vec<u16> = OsStr::new("runas").encode_wide().chain(std::iter::once(0)).collect();
+        unsafe {
+            let instance = ShellExecuteW(
+                None,
+                PCWSTR(verb.as_ptr()),
+                PCWSTR(exe_wide.as_ptr()),
+                PCWSTR::null(),
+                PCWSTR::null(),
+                SW_SHOWNORMAL,
+            );
+            if (instance.0 as isize) > 32 {
+                std::process::exit(0);
+            }
+        }
+    }
+    Ok(())
+}
