@@ -83,25 +83,51 @@ pub fn delete_file_safely(path: &Path) -> io::Result<()> {
     }
 }
 
-/// Safely removes an empty or populated directory.
+/// Safely removes an empty or populated directory with granular fallback for locked children.
 pub fn delete_dir_safely(path: &Path) -> io::Result<()> {
     if is_junction_or_symlink(path)? {
         // If it's a junction/symlink directory, remove directory handle only, do not recurse into target!
         return fs::remove_dir(path);
     }
 
-    // Clear read-only flags recursively if needed
-    match fs::remove_dir_all(path) {
-        Ok(_) => Ok(()),
-        Err(e) if e.kind() == io::ErrorKind::PermissionDenied => {
-            let _ = remove_readonly_flag(path);
-            for entry in walkdir(path)? {
-                let _ = remove_readonly_flag(&entry);
-            }
-            fs::remove_dir_all(path)
-        }
-        Err(e) => Err(e),
+    // Try direct removal first
+    if let Ok(()) = fs::remove_dir_all(path) {
+        return Ok(());
     }
+
+    // Clear read-only flags recursively if needed
+    let _ = remove_readonly_flag(path);
+    if let Ok(entries) = walkdir(path) {
+        for entry in &entries {
+            let _ = remove_readonly_flag(entry);
+        }
+    }
+
+    if let Ok(()) = fs::remove_dir_all(path) {
+        return Ok(());
+    }
+
+    // Granular fallback: delete all unlocked files and subdirectories individually
+    delete_dir_contents_granular(path)?;
+    let _ = fs::remove_dir(path);
+    Ok(())
+}
+
+/// Recursively deletes all unlocked files and subdirectories within a folder.
+fn delete_dir_contents_granular(dir: &Path) -> io::Result<()> {
+    if let Ok(read_dir) = fs::read_dir(dir) {
+        for entry in read_dir.flatten() {
+            let p = entry.path();
+            let _ = remove_readonly_flag(&p);
+            if p.is_dir() && !is_junction_or_symlink(&p).unwrap_or(false) {
+                let _ = delete_dir_contents_granular(&p);
+                let _ = fs::remove_dir(&p);
+            } else {
+                let _ = fs::remove_file(&p);
+            }
+        }
+    }
+    Ok(())
 }
 
 /// Simple non-following directory contents collector for attribute reset.

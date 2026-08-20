@@ -178,8 +178,18 @@ pub fn setup_ui_bridge(window: &AppWindow) {
             let refreshed_candidates: usize = refreshed_plans.iter().map(|p| p.candidates.len()).sum();
             let selected_count = refreshed_plans.iter().filter(|p| p.is_selected).count();
 
+            let mut display_plans: Vec<_> = refreshed_plans.clone();
+            if !drive_str.starts_with("C:") && !drive_str.eq_ignore_ascii_case("All Drives") {
+                let active: Vec<_> = refreshed_plans.iter().filter(|p| p.total_bytes > 0 || p.total_files > 0).cloned().collect();
+                if !active.is_empty() {
+                    display_plans = active;
+                }
+            } else {
+                display_plans.sort_by(|a, b| b.total_bytes.cmp(&a.total_bytes));
+            }
+
             state_worker.lock().unwrap().plans = refreshed_plans.clone();
-            let ui_items: Vec<_> = refreshed_plans.iter().map(plan_to_ui_item).collect();
+            let ui_items: Vec<_> = display_plans.iter().map(plan_to_ui_item).collect();
 
             let _ = slint::invoke_from_event_loop(move || {
                 if let Some(h) = handle_worker.upgrade() {
