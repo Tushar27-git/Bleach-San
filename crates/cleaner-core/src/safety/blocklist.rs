@@ -12,6 +12,13 @@ pub fn get_protected_paths() -> Vec<PathBuf> {
         protected.push(p.join("SysWOW64"));
         protected.push(p.join("WinSxS"));
         protected.push(p.join("Boot"));
+        protected.push(p.join("INF"));
+        // Critical driver and kernel stores
+        protected.push(p.join("System32").join("drivers"));
+        protected.push(p.join("System32").join("DriverStore").join("FileRepository"));
+        protected.push(p.join("System32").join("config"));
+        protected.push(p.join("System32").join("catroot"));
+        protected.push(p.join("System32").join("catroot2"));
     }
 
     // Program Files
@@ -38,6 +45,25 @@ pub fn get_protected_paths() -> Vec<PathBuf> {
     }
 
     protected
+}
+
+/// Checks if a path is inside any forbidden system kernel or active driver repository.
+pub fn is_forbidden_from_cleanup(path: &Path) -> bool {
+    let path_lower = path.to_string_lossy().to_lowercase();
+    
+    // Strict blocklist for active Windows drivers & core registry
+    if path_lower.contains("system32\\drivers")
+        || path_lower.contains("driverstore\\filerepository")
+        || path_lower.contains("system32\\config")
+        || path_lower.contains("system32\\catroot")
+        || path_lower.contains("system32\\winevt\\logs")
+        || path_lower.contains("winsxs")
+        || path_lower.contains("system volume information")
+    {
+        return true;
+    }
+
+    false
 }
 
 /// Checks if a given path is an exact match for a protected root or a drive root (e.g. `C:\`).

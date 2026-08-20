@@ -37,3 +37,21 @@ fn test_user_data_classification() {
         assert_eq!(level, SafetyLevel::UserData);
     }
 }
+
+#[test]
+fn test_active_driver_and_system32_protection() {
+    // 1. Active Windows Driver binaries must be strictly rejected
+    let active_driver = Path::new("C:\\Windows\\System32\\drivers\\etc");
+    assert!(validate_target_path(active_driver, None).is_err());
+
+    let driverstore_repo = Path::new("C:\\Windows\\System32\\DriverStore\\FileRepository\\nv_dispi.inf_amd64_1234");
+    assert!(validate_target_path(driverstore_repo, None).is_err());
+
+    // 2. System registry config hives must be strictly rejected
+    let registry_hive = Path::new("C:\\Windows\\System32\\config\\SYSTEM");
+    assert!(validate_target_path(registry_hive, None).is_err());
+
+    // 3. WinSxS component store must be strictly rejected
+    let winsxs_path = Path::new("C:\\Windows\\WinSxS\\amd64_microsoft-windows-kernel_123");
+    assert!(validate_target_path(winsxs_path, None).is_err());
+}

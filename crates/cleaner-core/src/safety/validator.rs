@@ -1,5 +1,5 @@
 use crate::models::SafetyLevel;
-use crate::safety::blocklist::is_exact_protected_path;
+use crate::safety::blocklist::{is_exact_protected_path, is_forbidden_from_cleanup};
 use cleaner_platform_windows::filesystem::{is_junction_or_symlink, normalize_path};
 use std::path::{Component, Path, PathBuf};
 use thiserror::Error;
@@ -38,8 +38,8 @@ pub fn validate_target_path(
     // 3. Normalize path (strip UNC \\?\)
     let normalized = normalize_path(raw_path);
 
-    // 4. Reject exact protected roots (C:\, C:\Windows, C:\Program Files, etc.)
-    if is_exact_protected_path(&normalized) {
+    // 4. Reject exact protected roots (C:\, C:\Windows, C:\Program Files, etc.) or forbidden system directories
+    if is_exact_protected_path(&normalized) || is_forbidden_from_cleanup(&normalized) {
         return Err(SafetyError::ProtectedPathViolation(
             normalized.to_string_lossy().to_string(),
         ));
